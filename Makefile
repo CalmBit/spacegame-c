@@ -4,6 +4,7 @@ LIBS=-lglfw -framework OpenGL -lglew
 UNITS=main memory error glfw_window shader file
 OBJ_DIR=obj/
 OBJS=$(addprefix $(OBJ_DIR), $(addsuffix .o, $(UNITS)))
+
 MKDIR_P = mkdir -p
 
 .PHONY: directories clean

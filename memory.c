@@ -27,6 +27,7 @@ void memory_init() {
 
 void memory_destroy() {
     block_t* cur;
+    size_t leaked = 0;
 
     cur = primary_pool->base;
     do {
@@ -36,9 +37,11 @@ void memory_destroy() {
                             "bytes long!\n",
                     (void*)cur, memory_user_name(cur->owner), 
                     cur->size + sizeof(block_t), cur->size);
+            leaked += cur->size;
         }
         cur = cur->next;
     } while(cur != primary_pool->base);
+    DEBUG("deallocating primary pool with %zu bytes leftover\n", leaked);
     free(primary_pool);
 }
 
@@ -59,11 +62,8 @@ void* memory_alloc(memory_user owner, size_t size) {
         error("unable to allocate block for size of %i, out of pooled memory\n", size);
     }
 
-    printf("pre-allocation block size: %zu (real %zu)\n", 
-            found->size, memory_real_size(found));
-
-    printf("allocation for block of size %zu (real %zu) owned by '%s'\n",
-     size - sizeof(block_t), size, memory_user_name(owner));
+    DEBUG("allocation for block of size %zu (real %zu) owned by '%s'\n",
+    size - sizeof(block_t), size, memory_user_name(owner));
 
     block_t* frag = (found + size);
     frag->prev = found;
@@ -71,15 +71,12 @@ void* memory_alloc(memory_user owner, size_t size) {
     frag->next->prev = frag;
     frag->size = (found->size - size);
 
-    printf("fragmenting block of size %zu (real %zu)\n", 
+    TRACE("fragmenting block of size %zu (real %zu)\n", 
         frag->size, memory_real_size(frag));
 
     found->next = frag;
     found->size = size-sizeof(block_t);
     found->owner = owner;
-
-    printf("returning block of size %zu (real %zu)\n", 
-        found->size, memory_real_size(found));
 
     return (void*)((char*)(found)+ sizeof(block_t));
 }
@@ -89,14 +86,14 @@ void memory_free(void* ptr) {
     bool merge;
 
     block = (block_t*)((char*)(ptr) - sizeof(block_t));
-    printf("freeing block of size %zu (real %zu) owned by '%s'\n", 
+    DEBUG("freeing block of size %zu (real %zu) owned by '%s'\n", 
             block->size, memory_real_size(block),
              memory_user_name(block->owner));
     while(block->prev->owner == SPC_MU_UNOWNED && block->prev != block) {
-        printf("merging previous block of size %zu (real %zu)...", 
+        TRACE("merging previous block of size %zu (real %zu)...", 
                 block->prev->size, memory_real_size(block->prev));
         block->prev->size += (block->size + (sizeof(block_t)));
-        printf("new size %zu (real %zu)\n", 
+        TRACE("new size %zu (real %zu)\n", 
                 block->prev->size, memory_real_size(block->prev));
         block->prev->next = block->next;
         block->next->prev = block->prev;
@@ -105,10 +102,10 @@ void memory_free(void* ptr) {
         block = block->prev;
     }
     while(block->next->owner == SPC_MU_UNOWNED && block->next != block) {
-        printf("merging next block of size %zu (real %zu)...", 
+        TRACE("merging next block of size %zu (real %zu)...", 
                 block->next->size, memory_real_size(block->next));
         block->next->size += (block->size + (sizeof(block_t)));
-        printf("new size %zu (real %zu)\n", 
+        TRACE("new size %zu (real %zu)\n", 
                 block->next->size, memory_real_size(block->next));
         block->next->prev = block->prev;
         block->prev->next = block->next;
@@ -117,7 +114,7 @@ void memory_free(void* ptr) {
         block = block->next;
     }
     block->owner = SPC_MU_UNOWNED;
-    printf("final unallocated block of size %zu (real %zu)\n", 
+    TRACE("final freed block of size %zu (real %zu)\n", 
             block->size, memory_real_size(block));
 }
 

@@ -17,3 +17,17 @@ void error(const char* fmt, ...) {
     memory_destroy();
     exit(-1);
 }
+
+void debug(const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    vprintf(fmt, args);
+    va_end(args);
+}
+
+void trace(const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    vprintf(fmt, args);
+    va_end(args);
+}
