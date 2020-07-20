@@ -1,7 +1,10 @@
 #ifndef _SPC_MMATH_H
 #define _SPC_MMATH_H
 
+#include "flags.h"
+
 #include <stddef.h>
+
 
 typedef struct vec2_t {
     float x, y;
@@ -22,21 +25,39 @@ typedef struct vec4_t {
 vec4_t* vec4_create(float x, float y, float z, float w);
 
 typedef struct mat2_t {
+#ifdef _SPC_COLUMN_MAJOR
+    float a11, a21;
+    float a12, a22;
+#else
     float a11, a12;
     float a21, a22;
+#endif
 } mat2_t;
 
 typedef struct mat3_t {
+#ifdef _SPC_COLUMN_MAJOR
+    float a11, a21, a31;
+    float a12, a22, a32;
+    float a13, a23, a33;
+#else
     float a11, a12, a13;
     float a21, a22, a23;
     float a31, a32, a33;
+#endif
 } mat3_t;
 
 typedef struct mat4_t {
+#ifdef _SPC_COLUMN_MAJOR
+    float a11, a21, a31, a41;
+    float a12, a22, a32, a42;
+    float a13, a23, a33, a43;
+    float a14, a24, a34, a44;
+#else
     float a11, a12, a13, a14;
     float a21, a22, a23, a24;
     float a31, a32, a33, a34;
     float a41, a42, a43, a44;
+#endif
 } mat4_t;
 
 mat2_t* mat2_identity();
@@ -56,7 +77,6 @@ void mat4_rotX(float theta, mat4_t* dst);
 void mat4_rotY(float theta, mat4_t* dst);
 void mat4_rotZ(float theta, mat4_t* dst);
 void mat4_translate(vec3_t* pos, mat4_t* dst);
-
 
 void free_container(void* cont);
 

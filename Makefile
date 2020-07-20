@@ -14,7 +14,7 @@ all: directories spacegame
 spacegame: $(OBJS)
 	$(CC) $(CFLAGS) $(LIBS) $(OBJS)  -o $@
 
-$(OBJ_DIR)%.o: %.c
+$(OBJ_DIR)%.o: %.c flags.h
 	$(CC) -c $(CFLAGS) -o $@ $<
 
 directories: ${OBJ_DIR}
