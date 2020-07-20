@@ -14,21 +14,13 @@ int main(int argc, char** argv) {
     window_free(win);
 
     window_destroy();*/
-    mat4_t a = {
-        1.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f
-    };
-    vec3_t pos = {1, 2, 3};
-    vec4_t scale = {2, 2, 2, 1};
-    mat4_translate(&pos, &a);
-    mat4_scale(&scale, &a);
-    printf("%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n",
-            a.a11, a.a12, a.a13, a.a14,
-            a.a21, a.a22, a.a23, a.a24,
-            a.a31, a.a32, a.a33, a.a34,
-            a.a41, a.a42, a.a43, a.a44);
+    vec3_t eye = {100, 200, 300};
+    vec3_t target = {75, 95, 250};
+    vec3_t up = {0, 1, 0};
+    mat4_t* m = mat4_create();
+
+    mat4_lookAt(&eye, &target, &up, m);
+    math_free_container(m);
     memory_destroy();
     return 0;
 }
