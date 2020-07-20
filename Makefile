@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-std=c99 -g -Wpedantic
 LIBS=-lglfw -framework OpenGL -lglew
-UNITS=main memory error glfw_window shader file
+UNITS=main memory error glfw_window shader file mmath
 OBJ_DIR=obj/
 OBJS=$(addprefix $(OBJ_DIR), $(addsuffix .o, $(UNITS)))
 
