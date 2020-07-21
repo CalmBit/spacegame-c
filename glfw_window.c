@@ -4,6 +4,7 @@
 #include "memory.h"
 #include "shader.h"
 #include "mmath.h"
+#include "audio.h"
 
 #define GL_SILENCE_DEPRECATION
 
@@ -11,8 +12,6 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <AL/al.h>
-#include <AL/alc.h>
 
 static const struct
 {
@@ -35,11 +34,15 @@ void window_init(void) {
 
 window_t* window_create(uint16_t width, uint16_t height) {
     window_t* win;
+    GLenum glew_status;
 
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwDefaultWindowHints();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
     win = memory_alloc(SPC_MU_WINDOW, sizeof(window_t));
     win->width = width;
@@ -49,80 +52,33 @@ window_t* window_create(uint16_t width, uint16_t height) {
         error("unable to initialize window");
     }
 
+    glfwMakeContextCurrent(win->window);
+    glfwSwapInterval(1);
+    glfwShowWindow(win->window);
+    if((glew_status = glewInit()) != GLEW_OK) {
+        error("unable to initialize GLEW, code: %i", glew_status);
+    }
+
     return win;
 }
 
 void window_loop(window_t* win) {
-    GLenum glew_status;
     GLuint vao, vbo;
     GLint vpos_location, m_loc, v_loc, p_loc;
     shader_t* shader;
-    mat4_t model = MAT4_IDENT
-    mat4_t mview = MAT4_IDENT
-    mat4_t proj = MAT4_IDENT
-    vec3_t mpos = {0,0.5,-1};
+    mat4_t model = MAT4_IDENT;
+    mat4_t mview = MAT4_IDENT;
+    mat4_t proj = MAT4_IDENT;
+    vec3_t mpos = {0,0.5,-2};
     vec3_t mtarget = {0,0,0};
     vec3_t mup = {0,1,0};
-    /*float angle = 0.0f;*/
-
-
-    ALCdevice *device;
-    ALCenum alerror;
-    ALCcontext *context;
-    ALuint source;
-    ALuint buffer;
 
     if(win == NULL || win->window == NULL) {
         error("attempted loop before initialization of window struct");
     }
 
-    glfwMakeContextCurrent(win->window);
-    if((glew_status = glewInit()) != GLEW_OK) {
-        error("unable to initialize GLEW, code: %i", glew_status);
-    }
-    glfwSwapInterval(1);
-
-    device = alcOpenDevice(NULL);
-    if (!device) {
-        error("unable to initialize OpenAL");
-    }
-    context = alcCreateContext(device, NULL);
-    if(!alcMakeContextCurrent(context)) {
-        error("unable to make OpenAL context current, error");
-    }
-
-    alGenSources((ALuint)1, &source);
-    alerror = alGetError();
-    if(alerror != AL_NO_ERROR) {
-        error("alsrc");
-    }
-    alSourcef(source, AL_PITCH, 1);
-    alerror = alGetError();
-    if(alerror != AL_NO_ERROR) {
-        error("alsrc1");
-    }
-    alSourcef(source, AL_GAIN, 1);
-    alerror = alGetError();
-    if(alerror != AL_NO_ERROR) {
-        error("alsrc2");
-    }
-    alSource3f(source, AL_POSITION, 0, 0, 0);
-    alerror = alGetError();
-    if(alerror != AL_NO_ERROR) {
-        error("alsrc3");
-    }
-    alSource3f(source, AL_VELOCITY, 0, 0, 0);
-    alerror = alGetError();
-    if(alerror != AL_NO_ERROR) {
-        error("alsrc4");
-    }
-    alSourcei(source, AL_LOOPING, AL_FALSE);
-    alerror = alGetError();
-    if(alerror != AL_NO_ERROR) {
-        error("alsrc5");
-    }
-
-    alGenBuffers((ALuint)1, &buffer);
+    audio_src_t* src = audio_src_create();
+    audio_src_destroy(src);
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
@@ -150,6 +106,8 @@ void window_loop(window_t* win) {
     glUniformMatrix4fv(p_loc, 1, GL_TRUE, ((float*)&proj));
 
     while(!glfwWindowShouldClose(win->window)) {
+        glfwPollEvents();
+
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(shader->prog);
@@ -165,19 +123,17 @@ void window_loop(window_t* win) {
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
         glfwSwapBuffers(win->window);
-
-        glfwPollEvents();
     }
 
     shader_destroy(shader);
 }
 
-void window_free(window_t* win) {
+void window_destroy(window_t* win) {
     glfwDestroyWindow(win->window);
     memory_free(win);
 }
 
-void window_destroy(void) {
+void window_cleanup(void) {
     glfwTerminate();
 }
 

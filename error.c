@@ -2,6 +2,7 @@
 
 #include "memory.h"
 #include "window.h"
+#include "audio.h"
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -13,8 +14,9 @@ void error(const char* fmt, ...) {
     fprintf(stderr, "ERROR: ");
     vfprintf(stderr, fmt, args);
     va_end(args);
-    window_destroy();
-    memory_destroy();
+    audio_cleanup();
+    window_cleanup();
+    memory_cleanup();
     exit(-1);
 }
 

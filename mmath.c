@@ -178,7 +178,7 @@ void mat2_mul(mat2_t* src, mat2_t* dst) {
         src->a11 * dst->a11 + src->a12 * dst->a21, 
         src->a11 * dst->a12 + src->a12 * dst->a22,
         src->a21 * dst->a11 + src->a22 * dst->a21,
-        src->a21 * dst->a12 + src->a22 * dst->a22)
+        src->a21 * dst->a12 + src->a22 * dst->a22);
     mat2_copy(&res, dst);
 }
 
@@ -237,7 +237,7 @@ void mat3_mul(mat3_t* src, mat3_t* dst) {
             src->a33 * dst->a32,
 
             src->a31 * dst->a13 + src->a32 * dst->a23 +
-            src->a33 * dst->a33)
+            src->a33 * dst->a33);
     mat3_copy(&res, dst);
 }
 
@@ -315,7 +315,7 @@ void mat4_mul(mat4_t* src, mat4_t* dst) {
         src->a43 * dst->a33 + src->a44 * dst->a43,
         // a44
         src->a41 * dst->a14 + src->a42 * dst->a24 +
-        src->a43 * dst->a34 + src->a44 * dst->a44)
+        src->a43 * dst->a34 + src->a44 * dst->a44);
     mat4_copy(&res, dst);
     
     TRACE("a1x | %f %f %f %f\n", dst->a11, dst->a12, dst->a13, dst->a14);
@@ -330,7 +330,7 @@ void mat4_rotX(float theta, mat4_t* dst) {
         0, cosf(theta), -sinf(theta), 0,
         0, sinf(theta), cosf(theta), 0,
         0, 0, 0, 1
-    )
+    );
     mat4_mul(&rot_mat, dst);
 }
 
@@ -341,7 +341,7 @@ void mat4_rotY(float theta, mat4_t* dst) {
         0, 1, 0, 0,
         -sinf(theta), 0, cosf(theta), 0,
         0, 0, 0, 1
-    )
+    );
     mat4_mul(&rot_mat, dst);
 }
 
@@ -351,7 +351,7 @@ void mat4_rotZ(float theta, mat4_t* dst) {
         sinf(theta), cosf(theta), 0, 0,
         0, 0, 1, 0,
         0, 0, 0, 1
-    )
+    );
     mat4_mul(&rot_mat, dst);
 }
 
@@ -361,7 +361,7 @@ void mat4_translate(vec3_t* pos, mat4_t* dst) {
         0, 1, 0, pos->y,
         0, 0, 1, pos->z,
         0, 0, 0, 1
-    )
+    );
     mat4_mul(&trans_mat, dst);
 }
 
@@ -434,8 +434,6 @@ void mat4_perspective(float fov, float aspect, float near, float far, mat4_t* ds
     dst->a24 = 0.0f;
     dst->a34 = -1.0f;
     dst->a44 = 0;
-
-    //mat4_print(dst);
 }
 
 void mat4_print(mat4_t* dst) {

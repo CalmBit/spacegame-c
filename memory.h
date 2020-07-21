@@ -31,23 +31,23 @@ typedef enum memory_user {
     SPC_MU_MATH
 } memory_user;
 
-typedef struct block_t {
+typedef struct memory_block_t {
     size_t size;
     memory_user owner;
-    struct block_t* next;
-    struct block_t* prev;
-} block_t;
+    struct memory_block_t* next;
+    struct memory_block_t* prev;
+} memory_block_t;
 
-typedef struct pool_t {
-    block_t *base;
-} pool_t;
+typedef struct memory_block_pool_t {
+    memory_block_t *base;
+} memory_block_pool_t;
 
-pool_t* memory_allocate_pool(size_t size);
+memory_block_pool_t* memory_allocate_pool(size_t size);
 void memory_init(void);
 void* memory_alloc(memory_user owner, size_t size);
 void memory_free(void* ptr);
-void memory_destroy(void);
+void memory_cleanup(void);
 const char* memory_user_name(memory_user owner);
-size_t memory_real_size(block_t* block);
+size_t memory_real_size(memory_block_t* block);
 
 #endif

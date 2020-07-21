@@ -51,7 +51,7 @@ typedef struct mat2_t {
 #define MAT2(a11, a12, a21, a22) { \
     a11, a21, \
     a12, a22, \
-};
+}
 
 #define MAT2_IDENT MAT2(1, 0, \
                         0, 1)
@@ -66,7 +66,7 @@ typedef struct mat3_t {
     a11, a21, a31, \
     a12, a22, a32, \
     a13, a23, a33 \
-};
+}
 
 
 #define MAT3_IDENT MAT3(1, 0, 0, \
@@ -85,7 +85,7 @@ typedef struct mat4_t {
     a12, a22, a32, a42, \
     a13, a23, a33, a43, \
     a14, a24, a34, a44 \
-};
+}
 
 #define MAT4_IDENT MAT4(1, 0, 0, 0, \
                         0, 1, 0, 0, \

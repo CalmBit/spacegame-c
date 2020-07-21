@@ -12,8 +12,8 @@ typedef struct window_t {
 
 void window_init(void);
 window_t* window_create(uint16_t height, uint16_t width);
-void window_free(window_t* win);
+void window_destroy(window_t* win);
 void window_loop(window_t* win);
-void window_destroy(void);
+void window_cleanup(void);
 
 #endif

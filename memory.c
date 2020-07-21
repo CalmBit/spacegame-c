@@ -25,7 +25,7 @@ void memory_init(void) {
     primary_pool = memory_allocate_pool(DEFAULT_POOL_SIZE);
 }
 
-void memory_destroy(void) {
+void memory_cleanup(void) {
     block_t* cur;
     size_t leaked = 0;
 
@@ -63,7 +63,7 @@ void* memory_alloc(memory_user owner, size_t size) {
     }
 
     DEBUG("allocation for block of size %zu (real %zu) owned by '%s'\n",
-    size - sizeof(block_t), size, memory_user_name(owner));
+            size - sizeof(block_t), size, memory_user_name(owner));
 
     block_t* frag = (found + size);
     frag->prev = found;
@@ -88,6 +88,8 @@ void memory_free(void* ptr) {
     DEBUG("freeing block of size %zu (real %zu) owned by '%s'\n", 
             block->size, memory_real_size(block),
              memory_user_name(block->owner));
+
+    // Look backward for any unallocated blocks...
     while(block->prev->owner == SPC_MU_UNOWNED && block->prev != block) {
         TRACE("merging previous block of size %zu (real %zu)...", 
                 block->prev->size, memory_real_size(block->prev));
@@ -100,6 +102,8 @@ void memory_free(void* ptr) {
             primary_pool->base = block->prev;
         block = block->prev;
     }
+
+    // ...and forward!
     while(block->next->owner == SPC_MU_UNOWNED && block->next != block) {
         TRACE("merging next block of size %zu (real %zu)...", 
                 block->next->size, memory_real_size(block->next));

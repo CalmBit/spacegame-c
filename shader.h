@@ -19,8 +19,8 @@ typedef struct shader_t {
     GLuint prog;
     GLint stride;
     int attr_count;
+    int attr_total_size;
     shader_attribute_t* attribute_locations;
-    int unif_count;
     shader_uniform_t* uniform_locations;
 } shader_t;
 
