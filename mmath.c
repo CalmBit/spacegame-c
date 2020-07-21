@@ -1,5 +1,6 @@
 #include "mmath.h"
 
+#include "flags.h"
 #include "memory.h"
 #include "error.h"
 
@@ -10,12 +11,49 @@
 
 #define mat_at(mat, i) (*((float*)&mat[i])) 
 
+// vec2_t
+
 vec2_t* vec2_create(float x, float y) {
     vec2_t* v = memory_alloc(SPC_MU_MATH, sizeof(vec2_t));
     v->x = x;
     v->y = y;
     return v;
 }
+
+void vec2_add(vec2_t* src, vec2_t* dst) {
+    dst->x += src->x;
+    dst->y += src->y;
+}
+
+void vec2_sub(vec2_t* src, vec2_t* dst) {
+    dst->x = (src->x - dst->x);
+    dst->y = (src->y - dst->y);
+}
+
+
+void vec2_copy(vec2_t* src, vec2_t* dst) {
+    dst->x = src->x;
+    dst->y = src->y;
+}
+
+void vec2_sdiv(float src, vec2_t* dst) {
+    dst->x /= src;
+    dst->y /= src;
+}
+
+float vec2_magnitude(vec2_t* src) {
+    float res;
+    res += powf(src->x, 2);
+    res += powf(src->y, 2);
+    res = sqrtf(res);
+    return res;
+}
+
+void vec2_normalize(vec2_t *dst) {
+    vec2_sdiv(vec2_magnitude(dst), dst);
+}
+
+// vec3_t
 
 vec3_t* vec3_create(float x, float y, float z) {
     vec3_t* v = memory_alloc(SPC_MU_MATH, sizeof(vec3_t));
@@ -68,9 +106,12 @@ float vec3_magnitude(vec3_t* src) {
 }
 
 void vec3_normalize(vec3_t *dst) {
-    vec3_sdiv(vec3_magnitude(dst), dst);
+    float mag = vec3_magnitude(dst);
+    TRACE("mag: %f\n", mag);
+    vec3_sdiv(mag, dst);
 }
 
+// vec4_t
 
 vec4_t* vec4_create(float x, float y, float z, float w) {
     vec4_t* v = memory_alloc(SPC_MU_MATH, sizeof(vec4_t));
@@ -80,6 +121,36 @@ vec4_t* vec4_create(float x, float y, float z, float w) {
     v->w = w;
     return v;
 }
+
+void vec4_add(vec4_t* src, vec4_t* dst) {
+    dst->x += src->x;
+    dst->y += src->y;
+    dst->z += src->z;
+    dst->w += src->w;
+}
+
+void vec4_sub(vec4_t* src, vec4_t* dst) {
+    dst->x = (src->x - dst->x);
+    dst->y = (src->y - dst->y);
+    dst->z = (src->z - dst->z);
+    dst->w = (src->w - dst->w);
+}
+
+void vec4_copy(vec4_t* src, vec4_t* dst) {
+    dst->x = src->x;
+    dst->y = src->y;
+    dst->z = src->z;
+    dst->w= src->w;
+}
+
+void vec4_sdiv(float src, vec4_t* dst) {
+    dst->x /= src;
+    dst->y /= src;
+    dst->z /= src;
+    dst->w /= src;
+}
+
+// mat2_t
 
 mat2_t* mat2_create() {
     mat2_t* mat = memory_alloc(SPC_MU_MATH, sizeof(mat2_t));
@@ -112,6 +183,8 @@ void mat2_mul(mat2_t* src, mat2_t* dst) {
     mat2_copy(src, dst);
 }
 
+// mat3_t
+
 mat3_t* mat3_create() {
     mat3_t* mat = memory_alloc(SPC_MU_MATH, sizeof(mat3_t));
     mat->a11 = 1; mat->a12 = 0; mat->a13 = 0;
@@ -139,36 +212,37 @@ void mat3_scalar(float scale, mat3_t* dst) {
 }
 
 void mat3_mul(mat3_t* src, mat3_t* dst) {
-    mat3_t res = MAT3_IDENT
-    res.a11 = src->a11 * dst->a11 +
-              src->a12 * dst->a21 +
-              src->a13 * dst->a31;
-    res.a12 = src->a11 * dst->a12 +
-              src->a12 * dst->a22 +
-              src->a13 * dst->a32;
-    res.a13 = src->a11 * dst->a13 +
-              src->a12 * dst->a23 +
-              src->a13 * dst->a33;
-    res.a21 = src->a21 * dst->a11 +
-              src->a22 * dst->a21 +
-              src->a23 * dst->a31;
-    res.a22 = src->a21 * dst->a12 +
-              src->a22 * dst->a22 +
-              src->a23 * dst->a32;
-    res.a23 = src->a21 * dst->a13 +
-              src->a22 * dst->a23 +
-              src->a23 * dst->a33; 
-    res.a31 = src->a31 * dst->a11 +
-              src->a32 * dst->a21 +
-              src->a33 * dst->a31;
-    res.a32 = src->a31 * dst->a12 +
-              src->a32 * dst->a22 +
-              src->a33 * dst->a32;
-    res.a33 = src->a31 * dst->a13 +
-              src->a32 * dst->a23 +
-              src->a33 * dst->a33; 
+    mat3_t res = MAT3(
+            src->a11 * dst->a11 + src->a12 * dst->a21 +
+            src->a13 * dst->a31,
+
+            src->a11 * dst->a12 + src->a12 * dst->a22 +
+            src->a13 * dst->a32,
+
+            src->a11 * dst->a13 + src->a12 * dst->a23 +
+            src->a13 * dst->a33,
+
+            src->a21 * dst->a11 + src->a22 * dst->a21 +
+            src->a23 * dst->a31,
+
+            src->a21 * dst->a12 +src->a22 * dst->a22 +
+            src->a23 * dst->a32,
+
+            src->a21 * dst->a13 + src->a22 * dst->a23 +
+            src->a23 * dst->a33,
+
+            src->a31 * dst->a11 + src->a32 * dst->a21 +
+            src->a33 * dst->a31,
+
+            src->a31 * dst->a12 + src->a32 * dst->a22 +
+            src->a33 * dst->a32,
+
+            src->a31 * dst->a13 + src->a32 * dst->a23 +
+            src->a33 * dst->a33)
     mat3_copy(src, dst);
 }
+
+// mat4_t
 
 mat4_t* mat4_create() {
     mat4_t* mat = memory_alloc(SPC_MU_MATH, sizeof(mat4_t));
@@ -244,10 +318,11 @@ void mat4_mul(mat4_t* src, mat4_t* dst) {
         src->a41 * dst->a14 + src->a42 * dst->a24 +
         src->a43 * dst->a34 + src->a44 * dst->a44)
     mat4_copy(&res, dst);
-    debug("a1x | %f %f %f %f\n", dst->a11, dst->a12, dst->a13, dst->a14);
-    debug("a2x | %f %f %f %f\n", dst->a21, dst->a22, dst->a23, dst->a24);
-    debug("a3x | %f %f %f %f\n", dst->a31, dst->a32, dst->a33, dst->a34);
-    debug("a4x | %f %f %f %f\n", dst->a41, dst->a42, dst->a43, dst->a44);
+    
+    TRACE("a1x | %f %f %f %f\n", dst->a11, dst->a12, dst->a13, dst->a14);
+    TRACE("a2x | %f %f %f %f\n", dst->a21, dst->a22, dst->a23, dst->a24);
+    TRACE("a3x | %f %f %f %f\n", dst->a31, dst->a32, dst->a33, dst->a34);
+    TRACE("a4x | %f %f %f %f\n", dst->a41, dst->a42, dst->a43, dst->a44);
 }
 
 void mat4_rotX(float theta, mat4_t* dst) {
@@ -298,50 +373,80 @@ void mat4_lookAt(vec3_t* eye, vec3_t* target, vec3_t* up, mat4_t* dst) {
 
     // Forward Vector
     // First, we want to set up the right side of our subtraction
-    vec3_copy(target, &forward);
+    vec3_copy(eye, &forward);
     // Then subtract in place
-    vec3_sub(eye, &forward);
+    vec3_sub(target, &forward);
     // and normalize the result...
     vec3_normalize(&forward);
 
     // Left Vector
     // First, we want to set up the right side of our cross
-    vec3_copy(&forward, &left);
+    vec3_copy(up, &left);
     // Then cross in place
-    vec3_cross(up, &left);
+    vec3_cross(&forward, &left);
     // and normlaize the result...
     vec3_normalize(&left);
 
     // Normal Up Vector
     // First, we want to set up the right side of our cross
-    vec3_copy(&left, &n_up);
+    vec3_copy(&forward, &n_up);
     // Then cross in place - result is already normalized.
-    vec3_cross(&forward, &n_up);
+    vec3_cross(&left, &n_up);
 
-    // Copy over this information to our rotation matrix
+
     dst->a11 = left.x;
-    dst->a12 = left.y;
-    dst->a13 = left.z;
     dst->a21 = n_up.x;
+    dst->a31 = -forward.x;
+    dst->a12 = left.y;
     dst->a22 = n_up.y;
+    dst->a32 = -forward.y;
+    dst->a13 = left.z;
     dst->a23 = n_up.z;
-    dst->a31 = forward.x;
-    dst->a32 = forward.y;
-    dst->a33  = forward.z;
-    dst->a41 = 0;
-    dst->a43 = 0;
-    dst->a43 = 0;
-    dst->a44 = 1;
+    dst->a33 = -forward.z;
+    dst->a14 = -((left.x * eye->x) + (left.y * eye->y) + (left.z * eye->z));
+    dst->a24 = -((n_up.x * eye->x) + (n_up.y * eye->y) + (n_up.z * eye->z));
+    dst->a34 = ((forward.x * eye->x) + (forward.y * eye->y) + (forward.z * eye->z));
+    dst->a41 = dst->a42 = dst->a43 = 0.0f;
+    dst->a44 = 1.0f;
 
-    // And perform our "translation"
-    dst->a14 = -left.x * eye->x - left.y * eye->y - left.z * eye->z;
-    dst->a24 = -n_up.x * eye->x - n_up.y * eye->y - n_up.z * eye->z;
-    dst->a34 = -forward.x * eye->x - forward.y * eye->y - forward.z * eye->z;
-    debug("a1x | %f %f %f %f\n", dst->a11, dst->a12, dst->a13, dst->a14);
-    debug("a2x | %f %f %f %f\n", dst->a21, dst->a22, dst->a23, dst->a24);
-    debug("a3x | %f %f %f %f\n", dst->a31, dst->a32, dst->a33, dst->a34);
-    debug("a4x | %f %f %f %f\n", dst->a41, dst->a42, dst->a43, dst->a44);
+    TRACE("v1c | %f %f %f %f\n", dst->a11, dst->a21, dst->a31, dst->a41);
+    TRACE("v2c | %f %f %f %f\n", dst->a12, dst->a22, dst->a32, dst->a42);
+    TRACE("v3c | %f %f %f %f\n", dst->a13, dst->a23, dst->a33, dst->a43);
+    TRACE("v4c | %f %f %f %f\n", dst->a14, dst->a24, dst->a34, dst->a44);
 }
+
+void mat4_perspective(float fov, float aspect, float near, float far, mat4_t* dst) {
+    float f = 1.0f / tanf(fov * 0.5f);
+    float fn = 1.0f / (near - far);
+
+    dst->a11 = f/aspect;
+    dst->a21 = 0.0f;
+    dst->a31 = 0.0f;
+    dst->a41 = 0.0f;
+    dst->a12 = 0.0f;
+    dst->a22 = f;
+    dst->a32 = 0.0f;
+    dst->a42 = 0.0f;
+    dst->a13 = 0.0f;
+    dst->a23 = 0.0f;
+    dst->a33 = (near+far)*fn;
+    dst->a43 = 2.0f * near * far * fn;
+    dst->a14 = 0.0f;
+    dst->a24 = 0.0f;
+    dst->a34 = -1.0f;
+    dst->a44 = 0;
+
+    //mat4_print(dst);
+}
+
+void mat4_print(mat4_t* dst) {
+    DEBUG("a1c | %f %f %f %f\n", dst->a11, dst->a21, dst->a31, dst->a41);
+    DEBUG("a2c | %f %f %f %f\n", dst->a12, dst->a22, dst->a32, dst->a42);
+    DEBUG("a3c | %f %f %f %f\n", dst->a13, dst->a23, dst->a33, dst->a43);
+    DEBUG("a4c | %f %f %f %f\n", dst->a14, dst->a24, dst->a34, dst->a44);
+}
+
+// general
 
 void math_free_container(void* cont) {
     memory_free(cont);

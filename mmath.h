@@ -5,12 +5,18 @@
 
 #include <stddef.h>
 
-
 typedef struct vec2_t {
     float x, y;
 } vec2_t;
 
 vec2_t* vec2_create(float x, float y);
+
+void vec2_add(vec2_t* src, vec2_t* dst);
+void vec2_sub(vec2_t* src, vec2_t* dst);
+void vec2_copy(vec2_t* src, vec2_t* dst);
+void vec2_sdiv(float src, vec2_t* dst);
+float vec2_magnitude(vec2_t* src);
+void vec2_normalize(vec2_t *dst);
 
 typedef struct vec3_t {
     float x, y, z;
@@ -32,56 +38,35 @@ typedef struct vec4_t {
 
 vec4_t* vec4_create(float x, float y, float z, float w);
 
+void vec4_add(vec4_t* src, vec4_t* dst);
+void vec4_sub(vec4_t* src, vec4_t* dst);
+void vec4_copy(vec4_t* src, vec4_t* dst);
+void vec4_sdiv(float src, vec4_t* dst);
+
 typedef struct mat2_t {
-#ifdef _SPC_COLUMN_MAJOR
     float a11, a21;
     float a12, a22;
-#else
-    float a11, a12;
-    float a21, a22;
-#endif
 } mat2_t;
 
-#ifdef _SPC_COLUMN_MAJOR
-    #define MAT2(a11, a12, a21, a22) { \
-            a11, a21, \
-            a12, a22, \
-        };
-#else
-    #define MAT2(a11, a12, a21, a22) { \
-            a11, a12, \
-            a21, a22, \
-        };
-#endif
+#define MAT2(a11, a12, a21, a22) { \
+    a11, a21, \
+    a12, a22, \
+};
 
 #define MAT2_IDENT MAT2(1, 0, \
                         0, 1)
 
 typedef struct mat3_t {
-#ifdef _SPC_COLUMN_MAJOR
     float a11, a21, a31;
     float a12, a22, a32;
     float a13, a23, a33;
-#else
-    float a11, a12, a13;
-    float a21, a22, a23;
-    float a31, a32, a33;
-#endif
 } mat3_t;
 
-#ifdef _SPC_COLUMN_MAJOR
-    #define MAT3(a11, a12, a13, a21, a22, a23,a31, a32, a33) { \
-            a11, a21, a31, \
-            a12, a22, a32, \
-            a13, a23, a33 \
-        };
-#else
-    #define MAT3(a11, a12, a13, a21, a22, a23,a31, a32, a33) { \
-            a11, a12, a13, \
-            a21, a22, a23, \
-            a31, a23, a33 \
-        };
-#endif
+#define MAT3(a11, a12, a13, a21, a22, a23,a31, a32, a33) { \
+    a11, a21, a31, \
+    a12, a22, a32, \
+    a13, a23, a33 \
+};
 
 
 #define MAT3_IDENT MAT3(1, 0, 0, \
@@ -89,34 +74,18 @@ typedef struct mat3_t {
                         0, 0, 1)
 
 typedef struct mat4_t {
-#ifdef _SPC_COLUMN_MAJOR
     float a11, a21, a31, a41;
     float a12, a22, a32, a42;
     float a13, a23, a33, a43;
     float a14, a24, a34, a44;
-#else
-    float a11, a12, a13, a14;
-    float a21, a22, a23, a24;
-    float a31, a32, a33, a34;
-    float a41, a42, a43, a44;
-#endif
 } mat4_t;
 
-#ifdef _SPC_COLUMN_MAJOR
-    #define MAT4(a11, a12, a13, a14, a21, a22, a23, a24, a31, a32, a33, a34, a41, a42, a43, a44) { \
-            a11, a21, a31, a41, \
-            a12, a22, a32, a42, \
-            a13, a23, a33, a43, \
-            a14, a24, a34, a44 \
-        };
-#else
-    #define MAT4(a11, a12, a13, a14, a21, a22, a23, a24, a31, a32, a33, a34, a41, a42, a43, a44) { \
-            a11, a12, a13, a14, \
-            a21, a22, a23, a24, \
-            a31, a32, a33, a34, \
-            a41, a42, a43, a44 \
-        };
-#endif
+#define MAT4(a11, a12, a13, a14, a21, a22, a23, a24, a31, a32, a33, a34, a41, a42, a43, a44) { \
+    a11, a21, a31, a41, \
+    a12, a22, a32, a42, \
+    a13, a23, a33, a43, \
+    a14, a24, a34, a44 \
+};
 
 #define MAT4_IDENT MAT4(1, 0, 0, 0, \
                         0, 1, 0, 0, \
@@ -145,7 +114,8 @@ void mat4_rotZ(float theta, mat4_t* dst);
 void mat4_translate(vec3_t* pos, mat4_t* dst);
 
 void mat4_lookAt(vec3_t* eye, vec3_t* target, vec3_t* up, mat4_t* dst);
-
+void mat4_perspective(float fov, float aspect, float near, float far, mat4_t *dst);
+void mat4_print(mat4_t* dst);
 void math_free_container(void* cont);
 
 #endif
