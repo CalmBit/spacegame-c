@@ -1,6 +1,12 @@
 CC=gcc
-CFLAGS=-std=c99 -g -Wpedantic
-LIBS=-lglfw -framework OpenGL -lglew
+CFLAGS=-std=c99 -g -Wall -Wextra -Wpedantic \
+          -Wformat=2 -Wno-unused-parameter -Wshadow \
+          -Wwrite-strings -Wstrict-prototypes -Wold-style-definition \
+          -Wredundant-decls -Wnested-externs -Wmissing-include-dirs \
+		  -Wno-format-nonliteral \
+		  -I/usr/local/opt/openal-soft/include
+LDFLAGS=-L/usr/local/opt/openal-soft/lib
+LIBS=-lglfw -framework OpenGL -lglew -lopenal
 UNITS=main memory error glfw_window shader file mmath
 OBJ_DIR=obj/
 OBJS=$(addprefix $(OBJ_DIR), $(addsuffix .o, $(UNITS)))
@@ -12,7 +18,7 @@ MKDIR_P = mkdir -p
 all: directories spacegame
 
 spacegame: $(OBJS)
-	$(CC) $(CFLAGS) $(LIBS) $(OBJS)  -o $@
+	$(CC) $(CFLAGS) $(LDFLAGS) $(LIBS) $(OBJS)  -o $@
 
 $(OBJ_DIR)%.o: %.c flags.h
 	$(CC) -c $(CFLAGS) -o $@ $<

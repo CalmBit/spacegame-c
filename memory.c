@@ -21,11 +21,11 @@ pool_t* memory_allocate_pool(size_t size) {
 
 pool_t* primary_pool;
 
-void memory_init() {
+void memory_init(void) {
     primary_pool = memory_allocate_pool(DEFAULT_POOL_SIZE);
 }
 
-void memory_destroy() {
+void memory_destroy(void) {
     block_t* cur;
     size_t leaked = 0;
 
@@ -53,7 +53,7 @@ void* memory_alloc(memory_user owner, size_t size) {
     do {
         if(look->size >= size && look->owner == SPC_MU_UNOWNED && max > look->size) {
             found = look;
-            size_t max = found->size;
+            max = found->size;
         }
         look = look->next;
     } while(look != primary_pool->base);
@@ -83,7 +83,6 @@ void* memory_alloc(memory_user owner, size_t size) {
 
 void memory_free(void* ptr) {
     block_t* block;
-    bool merge;
 
     block = (block_t*)((char*)(ptr) - sizeof(block_t));
     DEBUG("freeing block of size %zu (real %zu) owned by '%s'\n", 

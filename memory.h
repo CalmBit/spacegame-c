@@ -43,10 +43,10 @@ typedef struct pool_t {
 } pool_t;
 
 pool_t* memory_allocate_pool(size_t size);
-void memory_init();
+void memory_init(void);
 void* memory_alloc(memory_user owner, size_t size);
 void memory_free(void* ptr);
-void memory_destroy();
+void memory_destroy(void);
 const char* memory_user_name(memory_user owner);
 size_t memory_real_size(block_t* block);
 

@@ -92,19 +92,19 @@ typedef struct mat4_t {
                         0, 0, 1, 0, \
                         0, 0, 0, 1)
 
-mat2_t* mat2_create();
+mat2_t* mat2_create(void);
 void mat2_copy(mat2_t* src, mat2_t *dst);
 void mat2_add(mat2_t* src, mat2_t* dst);
 void mat2_scalar(float scale, mat2_t* dst);
 void mat2_mul(mat2_t* src, mat2_t* dst);
 
-mat3_t* mat3_create();
+mat3_t* mat3_create(void);
 void mat3_copy(mat3_t* src, mat3_t* dst);
 void mat3_add(mat3_t* src, mat3_t* dst);
 void mat3_scalar(float scale, mat3_t* dst);
 void mat3_mul(mat3_t* src, mat3_t* dst);
 
-mat4_t* mat4_create();
+mat4_t* mat4_create(void);
 void mat4_copy(mat4_t* src, mat4_t *dst);
 void mat4_scale(vec4_t* scale, mat4_t* dst);
 void mat4_mul(mat4_t* src, mat4_t* dst);

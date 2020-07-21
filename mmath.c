@@ -42,7 +42,7 @@ void vec2_sdiv(float src, vec2_t* dst) {
 }
 
 float vec2_magnitude(vec2_t* src) {
-    float res;
+    float res = 0.0f;
     res += powf(src->x, 2);
     res += powf(src->y, 2);
     res = sqrtf(res);
@@ -97,7 +97,7 @@ void vec3_sdiv(float src, vec3_t* dst) {
 }
 
 float vec3_magnitude(vec3_t* src) {
-    float res;
+    float res = 0.0f;
     res += powf(src->x, 2);
     res += powf(src->y, 2);
     res += powf(src->z, 2);
@@ -107,7 +107,6 @@ float vec3_magnitude(vec3_t* src) {
 
 void vec3_normalize(vec3_t *dst) {
     float mag = vec3_magnitude(dst);
-    TRACE("mag: %f\n", mag);
     vec3_sdiv(mag, dst);
 }
 
@@ -152,7 +151,7 @@ void vec4_sdiv(float src, vec4_t* dst) {
 
 // mat2_t
 
-mat2_t* mat2_create() {
+mat2_t* mat2_create(void) {
     mat2_t* mat = memory_alloc(SPC_MU_MATH, sizeof(mat2_t));
     mat->a11 = 1; mat->a12 = 0;
     mat->a21 = 0; mat->a22 = 1;
@@ -180,12 +179,12 @@ void mat2_mul(mat2_t* src, mat2_t* dst) {
         src->a11 * dst->a12 + src->a12 * dst->a22,
         src->a21 * dst->a11 + src->a22 * dst->a21,
         src->a21 * dst->a12 + src->a22 * dst->a22)
-    mat2_copy(src, dst);
+    mat2_copy(&res, dst);
 }
 
 // mat3_t
 
-mat3_t* mat3_create() {
+mat3_t* mat3_create(void) {
     mat3_t* mat = memory_alloc(SPC_MU_MATH, sizeof(mat3_t));
     mat->a11 = 1; mat->a12 = 0; mat->a13 = 0;
     mat->a21 = 0; mat->a22 = 1; mat->a23 = 0;
@@ -239,12 +238,12 @@ void mat3_mul(mat3_t* src, mat3_t* dst) {
 
             src->a31 * dst->a13 + src->a32 * dst->a23 +
             src->a33 * dst->a33)
-    mat3_copy(src, dst);
+    mat3_copy(&res, dst);
 }
 
 // mat4_t
 
-mat4_t* mat4_create() {
+mat4_t* mat4_create(void) {
     mat4_t* mat = memory_alloc(SPC_MU_MATH, sizeof(mat4_t));
     mat->a11 = 1; mat->a12 = 0; mat->a13 = 0; mat->a14 = 0;
     mat->a21 = 0; mat->a22 = 1; mat->a23 = 0; mat->a24 = 0;
@@ -376,6 +375,7 @@ void mat4_lookAt(vec3_t* eye, vec3_t* target, vec3_t* up, mat4_t* dst) {
     vec3_copy(eye, &forward);
     // Then subtract in place
     vec3_sub(target, &forward);
+
     // and normalize the result...
     vec3_normalize(&forward);
 
@@ -392,7 +392,6 @@ void mat4_lookAt(vec3_t* eye, vec3_t* target, vec3_t* up, mat4_t* dst) {
     vec3_copy(&forward, &n_up);
     // Then cross in place - result is already normalized.
     vec3_cross(&left, &n_up);
-
 
     dst->a11 = left.x;
     dst->a21 = n_up.x;
