@@ -3,46 +3,50 @@
 #include "mmath.h"
 #include "audio.h"
 #include "str_util.h"
+#include "list.h"
+#include "obj.h"
 
 #include <stdio.h>
+#include <stddef.h>
 
 int main(int argc, char** argv) {
-    su_split_t* buf;
-    su_split_t** sub;
-    size_t i;
-    size_t j;
-    su_split_node_t* n;
-    su_split_node_t* sn;
+    window_t* win;
     memory_init();
-    /*window_init();
+    window_init();
 
-    window_t* win = window_create(800, 600);
-    
+    win = window_create(800, 600);
 
     audio_init();
 
+    obj_t* obj = obj_create("testmesh.obj");
+    vec4_t* v;
+    vec3_t* uvn;
+
+    printf("verts:\n");
+    for(size_t i =0;i < obj->verticies->length;i++) {
+        v = (vec4_t*)obj->verticies->buff[i];
+        printf("%f %f %f %f\n", v->x, v->y, v->z, v->w);
+    }
+
+    printf("normals:\n");
+    for(size_t i =0;i < obj->normals->length;i++) {
+        uvn = (vec3_t*)obj->normals->buff[i];
+        printf("%f %f %f\n", uvn->x, uvn->y, uvn->z);
+    }
+
+    printf("uvs:\n");
+    for(size_t i =0;i < obj->uvs->length;i++) {
+        uvn = (vec3_t*)obj->uvs->buff[i];
+        printf("%f %f %f\n", uvn->x, uvn->y, uvn->z);
+    }
+
+    obj_destroy(obj);
+    
     window_loop(win);
 
     audio_cleanup();
     window_destroy(win);
-    window_cleanup();*/
-    buf = su_split_string("6/4/1 3/5/3 7/6/5", ' ', 256);
-    sub = memory_alloc(SPC_MU_INTERNAL, buf->count * sizeof(buf));
-
-    n = buf->base;
-    for(i = 0;i < buf->count;i++) {
-        sub[i] = su_split_string(n->str->buffer, '/', 32);
-        sn = sub[i]->base;
-        for(j = 0;j < sub[i]->count;j++) {
-            printf("%s\n", sn->str->buffer);
-            sn = sn->next;
-        }
-        su_split_destroy(sub[i]);
-        n = n->next;
-    }
-    memory_free(sub);
-
-    su_split_destroy(buf);
+    window_cleanup();
     memory_cleanup();
     return 0;
 }

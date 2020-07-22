@@ -52,7 +52,7 @@ su_split_t* su_split_string(const char* str, char delimiter, size_t max_len) {
               "size > %i", max_len);
     }
     
-    printf("found %i groups in str '%s'\n", split->count, str);
+    printf("found %zu groups in str '%s'\n", split->count, str);
 
     return split;
 }

@@ -15,13 +15,32 @@
 
 static const struct
 {
-    float x, y;
-} vertices[4] =
+    float x, y, z;
+} vertices[8] =
 {
-    {  -0.5f, -0.5f},
-    {  0.5f, -0.5f},
-    {  -0.5f,  0.5f},
-    {  0.5f,  0.5f}
+    {  -0.5f, -0.5f, -0.5f}, //0
+    {  0.5f, -0.5f, -0.5f}, //1
+    {  -0.5f,  0.5f, -0.5f}, //2
+    {  0.5f,  0.5f, -0.5f}, //3
+    {  -0.5f, -0.5f, 0.5f}, //4
+    {  0.5f, -0.5f, 0.5f}, //5
+    {  -0.5f,  0.5f, 0.5f}, //6
+    {  0.5f,  0.5f, 0.5f}, //7
+};
+
+static const unsigned short indexes[] = {
+    0, 2, 3,
+    3, 1, 0,
+    7, 6, 4,
+    4, 5, 7,
+    2, 0, 4,
+    4, 6, 2,
+    3, 7, 5,
+    5, 1, 3,
+    1, 5, 4,
+    4, 0, 1,
+    6, 7, 3,
+    3, 2, 6
 };
  
 void err_callback(int err, const char* desc);
@@ -64,15 +83,17 @@ window_t* window_create(uint16_t width, uint16_t height) {
 }
 
 void window_loop(window_t* win) {
-    GLuint vao, vbo;
+    GLuint vao, vbo, ebo;
     GLint vpos_location, m_loc, v_loc, p_loc;
     shader_t* shader;
     mat4_t model = MAT4_IDENT;
     mat4_t mview = MAT4_IDENT;
     mat4_t proj = MAT4_IDENT;
-    vec3_t mpos = {0,0,-2};
+    vec3_t mpos = {0,1,1};
     vec3_t mtarget = {0,0,0};
     vec3_t mup = {0,1,0};
+
+    glEnable(GL_CULL_FACE);
 
     if(win == NULL || win->window == NULL) {
         error("attempted loop before initialization of window struct");
@@ -86,7 +107,13 @@ void window_loop(window_t* win) {
 
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, 
+                    GL_STATIC_DRAW);
+
+    glGenBuffers(1, &ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexes), indexes, 
+                    GL_STATIC_DRAW);
 
     shader = shader_create("test.vert", "test.frag");
 
@@ -94,7 +121,9 @@ void window_loop(window_t* win) {
 
     vpos_location = glGetAttribLocation(shader->prog, "vPos");
     glEnableVertexAttribArray(vpos_location);
-    glVertexAttribPointer(vpos_location, 2, GL_FLOAT, GL_FALSE, sizeof(vertices[0]), (void*)NULL);
+    glVertexAttribPointer(vpos_location, 3, GL_FLOAT, GL_FALSE, 
+                            sizeof(vertices[0]), 
+                            NULL);
 
     m_loc = glGetUniformLocation(shader->prog, "model");
 
@@ -116,12 +145,7 @@ void window_loop(window_t* win) {
         mat4_rotY(0.01f, &model);
         glUniformMatrix4fv(m_loc, 1, GL_FALSE, ((float*)&model));
 
-        /*angle += 0.01f;
-        if(angle >= 360.0f) {
-            angle = 0.0f;
-        }*/
-
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glDrawElements(GL_TRIANGLES, sizeof(indexes)/sizeof(unsigned short), GL_UNSIGNED_SHORT, NULL);
 
         glfwSwapBuffers(win->window);
     }

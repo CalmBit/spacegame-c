@@ -35,21 +35,36 @@ void memory_cleanup(void) {
     memory_block_t* cur;
     size_t leaked = 0;
 
-    cur = primary_pool->search;
+    cur = &primary_pool->base;
     do {
         if(cur->owner != SPC_MU_UNOWNED && cur->owner != SPC_MU_KEEP) {
             fprintf(stderr, "!!! CAUGHT LEAK !!!! ");
             fprintf(stderr, "block at %p has owner '%s' and is %zu (real %zu) "
                             "bytes long!\n",
                     (void*)cur, memory_user_name(cur->owner), 
-                    cur->size + sizeof(memory_block_t), cur->size);
+                    cur->size, memory_real_size(cur));
             leaked += cur->size;
         }
         DEBUG("block of type '%s', size %zu\n", memory_user_name(cur->owner), cur->size);
         cur = cur->next;
-    } while(cur != primary_pool->search);
+    } while(cur != &primary_pool->base);
     DEBUG("deallocating primary pool with %zu bytes leftover\n", leaked);
     free(primary_pool);
+}
+
+void memory_dump(void) {
+    memory_block_t* cur;
+    size_t occupied = 0;
+
+    cur = &primary_pool->base;
+    do {
+        if(cur->owner != SPC_MU_UNOWNED && cur->owner != SPC_MU_KEEP) {
+            occupied += cur->size;
+        }
+        DEBUG("block of type '%s', size %zu\n", memory_user_name(cur->owner), cur->size);
+        cur = cur->next;
+    } while(cur != &primary_pool->base);
+    DEBUG("pool has a total of %zu bytes occupied\n", occupied);
 }
 
 void* memory_alloc(memory_user owner, size_t size) {
@@ -96,6 +111,9 @@ void memory_free(void* ptr) {
     memory_block_t* block;
     memory_block_t* cand;
     block = (memory_block_t*)((char*)(ptr) - sizeof(memory_block_t));
+    if(block->owner == SPC_MU_UNOWNED) {
+        error("double free!!!!\n");
+    }
     TRACE("freeing block of size %zu (real %zu) owned by '%s'\n", 
             block->size, memory_real_size(block),
              memory_user_name(block->owner));
@@ -110,6 +128,7 @@ void memory_free(void* ptr) {
                 cand->size, memory_real_size(cand));
         cand->next = block->next;
         cand->next->prev = cand;
+        block->owner = SPC_MU_SOUND;
 
         if(primary_pool->search == block) {
             primary_pool->search = cand;

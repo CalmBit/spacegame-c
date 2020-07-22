@@ -1,11 +1,13 @@
 #version 150
 
-in vec2 vPos;
+in vec3 vPos;
+out vec3 Pos;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 proj;
 
 void main()
 {
-    gl_Position = proj * view * model * vec4(vPos, 0.0, 1.0);
+    Pos = vPos;
+    gl_Position = proj * view * model * vec4(vPos, 1.0);
 }
