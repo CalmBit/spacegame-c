@@ -13,22 +13,26 @@
 
 static const char* users[] = {
     "UNOWNED",
+    "KEEP",
     "WINDOW",
     "FILE",
     "GRAPHICS",
     "SOUND",
     "LEVEL",
+    "INTERNAL",
     "MATH"
 };
 
 typedef enum memory_user {
     SPC_MU_UNOWNED = 0,
-    SPC_MU_WINDOW,
-    SPC_MU_FILE,
-    SPC_MU_GRAPHICS,
-    SPC_MU_SOUND,
-    SPC_MU_LEVEL,
-    SPC_MU_MATH
+    SPC_MU_KEEP = 1,
+    SPC_MU_WINDOW = 2,
+    SPC_MU_FILE = 3,
+    SPC_MU_GRAPHICS = 4,
+    SPC_MU_SOUND = 5,
+    SPC_MU_LEVEL = 6,
+    SPC_MU_INTERNAL = 7,
+    SPC_MU_MATH = 8
 } memory_user;
 
 typedef struct memory_block_t {
@@ -39,7 +43,8 @@ typedef struct memory_block_t {
 } memory_block_t;
 
 typedef struct memory_block_pool_t {
-    memory_block_t *base;
+    memory_block_t base;
+    memory_block_t *search;
 } memory_block_pool_t;
 
 memory_block_pool_t* memory_allocate_pool(size_t size);

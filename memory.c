@@ -7,116 +7,133 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-pool_t* memory_allocate_pool(size_t size) {
-    pool_t* pool;
+memory_block_pool_t* memory_allocate_pool(size_t size) {
+    memory_block_pool_t* pool;
+    memory_block_t* first;
 
     pool = malloc(size);
-    pool->base = ((block_t*)(pool + sizeof(pool_t)));
-    pool->base->size = (size - sizeof(pool_t) - sizeof(block_t));
-    pool->base->owner = SPC_MU_UNOWNED;
-    pool->base->next = pool->base;
-    pool->base->prev = pool->base;
+    first = ((memory_block_t*)(pool + sizeof(memory_block_pool_t)));
+    pool->base.next = first;
+    pool->base.prev = first;
+    pool->search = first;   
+    pool->base.owner = SPC_MU_KEEP;
+
+    first->owner = SPC_MU_UNOWNED;
+    first->next = &pool->base;
+    first->prev = &pool->base;
+    first->size = size-(sizeof(memory_block_pool_t));
     return pool;
 }
 
-pool_t* primary_pool;
+memory_block_pool_t* primary_pool;
 
 void memory_init(void) {
     primary_pool = memory_allocate_pool(DEFAULT_POOL_SIZE);
 }
 
 void memory_cleanup(void) {
-    block_t* cur;
+    memory_block_t* cur;
     size_t leaked = 0;
 
-    cur = primary_pool->base;
+    cur = primary_pool->search;
     do {
-        if(cur->owner != SPC_MU_UNOWNED) {
+        if(cur->owner != SPC_MU_UNOWNED && cur->owner != SPC_MU_KEEP) {
             fprintf(stderr, "!!! CAUGHT LEAK !!!! ");
             fprintf(stderr, "block at %p has owner '%s' and is %zu (real %zu) "
                             "bytes long!\n",
                     (void*)cur, memory_user_name(cur->owner), 
-                    cur->size + sizeof(block_t), cur->size);
+                    cur->size + sizeof(memory_block_t), cur->size);
             leaked += cur->size;
         }
+        DEBUG("block of type '%s', size %zu\n", memory_user_name(cur->owner), cur->size);
         cur = cur->next;
-    } while(cur != primary_pool->base);
+    } while(cur != primary_pool->search);
     DEBUG("deallocating primary pool with %zu bytes leftover\n", leaked);
     free(primary_pool);
 }
 
 void* memory_alloc(memory_user owner, size_t size) {
-    block_t* look = primary_pool->base;
-    block_t* found = NULL;
+    memory_block_t* look = primary_pool->search;
+    memory_block_t* found = NULL;
     size_t max = SIZE_MAX;
-    size += sizeof(block_t);
+    size += sizeof(memory_block_t);
     do {
         if(look->size >= size && look->owner == SPC_MU_UNOWNED && max > look->size) {
             found = look;
-            max = found->size;
+            break;
         }
         look = look->next;
-    } while(look != primary_pool->base);
+    } while(look != primary_pool->search);
 
     if(found == NULL) {
         error("unable to allocate block for size of %i, out of pooled memory\n", size);
     }
 
-    DEBUG("allocation for block of size %zu (real %zu) owned by '%s'\n",
-            size - sizeof(block_t), size, memory_user_name(owner));
+    TRACE("allocation for block of size %zu (real %zu) owned by '%s'\n",
+            size, size-sizeof(memory_block_t), memory_user_name(owner));
 
-    block_t* frag = (found + size);
+    memory_block_t* frag = (found + size);
+    frag->owner = SPC_MU_UNOWNED;
     frag->prev = found;
     frag->next = found->next;
     frag->next->prev = frag;
     frag->size = (found->size - size);
+    primary_pool->search = frag;
 
     TRACE("fragmenting block of size %zu (real %zu)\n", 
         frag->size, memory_real_size(frag));
 
     found->next = frag;
-    found->size = size-sizeof(block_t);
+    found->size = size;
     found->owner = owner;
 
-    return (void*)((char*)(found)+ sizeof(block_t));
+    TRACE("returning %p of size %zu\n", (void*)((char*)(found)+ sizeof(memory_block_t)), found->size);
+
+    return (void*)((char*)(found) + sizeof(memory_block_t));
 }
 
 void memory_free(void* ptr) {
-    block_t* block;
-
-    block = (block_t*)((char*)(ptr) - sizeof(block_t));
-    DEBUG("freeing block of size %zu (real %zu) owned by '%s'\n", 
+    memory_block_t* block;
+    memory_block_t* cand;
+    block = (memory_block_t*)((char*)(ptr) - sizeof(memory_block_t));
+    TRACE("freeing block of size %zu (real %zu) owned by '%s'\n", 
             block->size, memory_real_size(block),
              memory_user_name(block->owner));
 
     // Look backward for any unallocated blocks...
-    while(block->prev->owner == SPC_MU_UNOWNED && block->prev != block) {
+    if(block->prev->owner == SPC_MU_UNOWNED) {
+        cand = block->prev;
         TRACE("merging previous block of size %zu (real %zu)...", 
-                block->prev->size, memory_real_size(block->prev));
-        block->prev->size += (block->size + (sizeof(block_t)));
+                cand->size, memory_real_size(cand));
+        cand->size += block->size;
         TRACE("new size %zu (real %zu)\n", 
-                block->prev->size, memory_real_size(block->prev));
-        block->prev->next = block->next;
-        block->next->prev = block->prev;
-        if(block == primary_pool->base)
-            primary_pool->base = block->prev;
-        block = block->prev;
+                cand->size, memory_real_size(cand));
+        cand->next = block->next;
+        cand->next->prev = cand;
+
+        if(primary_pool->search == block) {
+            primary_pool->search = cand;
+        }
+        block = cand;
     }
 
     // ...and forward!
-    while(block->next->owner == SPC_MU_UNOWNED && block->next != block) {
+    if(block->next->owner == SPC_MU_UNOWNED) {
+        cand = block->next;
         TRACE("merging next block of size %zu (real %zu)...", 
-                block->next->size, memory_real_size(block->next));
-        block->next->size += (block->size + (sizeof(block_t)));
+                cand->size, memory_real_size(cand));
+        block->size += cand->size;
         TRACE("new size %zu (real %zu)\n", 
-                block->next->size, memory_real_size(block->next));
-        block->next->prev = block->prev;
-        block->prev->next = block->next;
-        if(block == primary_pool->base)
-            primary_pool->base = block->next;
-        block = block->next;
+                block->size, memory_real_size(block));
+        block->next = cand->next;
+        block->next->prev = block;
+        if(primary_pool->search == cand) {
+            primary_pool->search = block;
+        }
     }
+
     block->owner = SPC_MU_UNOWNED;
+
     TRACE("final freed block of size %zu (real %zu)\n", 
             block->size, memory_real_size(block));
 }
@@ -125,6 +142,6 @@ const char* memory_user_name(memory_user owner) {
     return users[owner];
 }
 
-size_t memory_real_size(block_t* block) {
-    return block->size + sizeof(block_t);
+size_t memory_real_size(memory_block_t* block) {
+    return block->size - sizeof(memory_block_t);
 }

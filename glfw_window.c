@@ -16,11 +16,12 @@
 static const struct
 {
     float x, y;
-} vertices[3] =
+} vertices[4] =
 {
-    { -0.6f, -0.4f},
-    {  0.6f, -0.4f},
-    {   0.f,  0.6f}
+    {  -0.5f, -0.5f},
+    {  0.5f, -0.5f},
+    {  -0.5f,  0.5f},
+    {  0.5f,  0.5f}
 };
  
 void err_callback(int err, const char* desc);
@@ -69,7 +70,7 @@ void window_loop(window_t* win) {
     mat4_t model = MAT4_IDENT;
     mat4_t mview = MAT4_IDENT;
     mat4_t proj = MAT4_IDENT;
-    vec3_t mpos = {0,0.5,-2};
+    vec3_t mpos = {0,0,-2};
     vec3_t mtarget = {0,0,0};
     vec3_t mup = {0,1,0};
 
@@ -102,7 +103,7 @@ void window_loop(window_t* win) {
     glUniformMatrix4fv(v_loc, 1, GL_FALSE, ((float*)&mview));
 
     p_loc = glGetUniformLocation(shader->prog, "proj");
-    mat4_perspective(90.0f, 800.0f/600.0f, 0.1f, 100.0f, &proj);
+    mat4_perspective(90.0f, 1.3333f, 0.1f, 100.0f, &proj);
     glUniformMatrix4fv(p_loc, 1, GL_TRUE, ((float*)&proj));
 
     while(!glfwWindowShouldClose(win->window)) {
@@ -120,7 +121,7 @@ void window_loop(window_t* win) {
             angle = 0.0f;
         }*/
 
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
         glfwSwapBuffers(win->window);
     }
