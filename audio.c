@@ -2,6 +2,9 @@
 
 #include "memory.h"
 #include "error.h"
+#include "wav.h"
+
+#include <stdio.h>
 
 ALenum last_al_error;
 ALCenum last_alc_error;
@@ -38,6 +41,7 @@ audio_system_t* audio_create(void) {
 }
 
 void audio_destroy(audio_system_t* aud) {
+    alcMakeContextCurrent(NULL);
     alcDestroyContext(aud->context);
     last_alc_error = alcGetError(aud->device);
     if(last_alc_error != ALC_NO_ERROR) {
@@ -45,7 +49,7 @@ void audio_destroy(audio_system_t* aud) {
                 audio_alcerror(last_alc_error));
     }
     alcCloseDevice(aud->device);
-        last_alc_error = alcGetError(aud->device);
+    last_alc_error = alcGetError(aud->device);
     if(last_alc_error != ALC_NO_ERROR) {
         error("encountered trouble when closing audio device: %s",
                 audio_alcerror(last_alc_error));
@@ -107,18 +111,50 @@ audio_src_t* audio_src_create(void) {
         error("unable to set source vel: %s", audio_alerror(last_al_error));
     }
 
-    src->looping = AL_FALSE;
+    src->looping = AL_TRUE;
     alSourcei(src->src, AL_LOOPING, src->looping);
     last_al_error = alGetError();
     if(last_al_error != AL_NO_ERROR) {
         error("unable to set source loop: %s", audio_alerror(last_al_error));
     }
 
+    alGenBuffers(1, &src->buffer);
+    last_al_error = alGetError();
+    if(last_al_error != AL_NO_ERROR) {
+        error("unable to gen buffer: %s", audio_alerror(last_al_error));
+    }
+
+    wav_t* wav = wav_load("schut_lq.wav");
+    printf("num_channels: %u\n", wav->num_channels);
+    printf("sample_rate: %u\n", wav->sample_rate);
+    printf("byte_rate: %u\n", wav->byte_rate);
+    printf("block_align: %u\n", wav->block_align);
+    printf("bits_per_sample: %u\n", wav->bits_per_sample);
+    printf("data_len: %u\n", wav->data.len);
+    fflush(stdout);
+
+    alBufferData(src->buffer, AL_FORMAT_MONO8,  wav->data.buffer, wav->data.len, wav->sample_rate);
+    last_al_error = alGetError();
+    if(last_al_error != AL_NO_ERROR) {
+        error("unable to bind buffer: %s", audio_alerror(last_al_error));
+    }
+
+    alSourcei(src->src, AL_BUFFER, src->buffer);
+    last_al_error = alGetError();
+    if(last_al_error != AL_NO_ERROR) {
+        error("unable to bind buffer to src: %s", audio_alerror(last_al_error));
+    }
+
+    alSourcePlay(src->src);
+
+    wav_destroy(wav);
+
     return src;
 }
 
 void audio_src_destroy(audio_src_t* src) {
-    alDeleteSources(1, &src->src);    
+    alDeleteSources(1, &src->src);
+    alDeleteBuffers(1, &src->buffer);
     last_al_error = alGetError();
     if(last_al_error != AL_NO_ERROR) {
         error("unable to set source loop: %s", audio_alerror(last_al_error));

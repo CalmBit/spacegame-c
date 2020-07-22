@@ -32,14 +32,20 @@ obj_t* obj_create(const char* path) {
         mark = fgets(buffer, 128, file->handle);
         if(mark == NULL && ferror(file->handle)) {
             error("problem parsing obj file - %s", strerror(errno));
+        } else if(mark == NULL) {
+            break;
         }
 
-        switch(buffer[0]) {
+        while(mark[0] == ' ' || mark[0] == '\t') {
+            mark++;
+        }
+
+        switch(mark[0]) {
             case '#':
                 break;
             case 'v':
-                mark = &buffer[2];
-                switch(buffer[1]) {
+                mark += 2;
+                switch(mark[-1]) {
                     case ' ':
                         // just a regular vertex
                         sscanf(mark, "%f %f %f %f", &v_stor->x, &v_stor->y, &v_stor->z, &v_stor->w);

@@ -100,7 +100,6 @@ void window_loop(window_t* win) {
     }
 
     audio_src_t* src = audio_src_create();
-    audio_src_destroy(src);
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
@@ -138,6 +137,8 @@ void window_loop(window_t* win) {
     while(!glfwWindowShouldClose(win->window)) {
         glfwPollEvents();
 
+        alListener3f(AL_POSITION, 0.0f, 0.0f, 2.0f);
+
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(shader->prog);
@@ -150,6 +151,7 @@ void window_loop(window_t* win) {
         glfwSwapBuffers(win->window);
     }
 
+    audio_src_destroy(src);
     shader_destroy(shader);
 }
 

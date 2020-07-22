@@ -5,6 +5,7 @@
 #include "str_util.h"
 #include "list.h"
 #include "obj.h"
+#include "wav.h"
 
 #include <stdio.h>
 #include <stddef.h>
@@ -17,8 +18,8 @@ int main(int argc, char** argv) {
     win = window_create(800, 600);
 
     audio_init();
-
-    obj_t* obj = obj_create("testmesh.obj");
+    
+    /*obj_t* obj = obj_create("cube.obj");
     vec4_t* v;
     vec3_t* uvn;
 
@@ -40,8 +41,8 @@ int main(int argc, char** argv) {
         printf("%f %f %f\n", uvn->x, uvn->y, uvn->z);
     }
 
-    obj_destroy(obj);
-    
+    obj_destroy(obj);*/
+
     window_loop(win);
 
     audio_cleanup();

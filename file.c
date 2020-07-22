@@ -31,3 +31,17 @@ file_t* file_load(const char* path, const char* mode) {
 void file_destroy(file_t* file) {
     memory_free(file);
 }
+
+
+void file_read_string(file_t* file, char* buffer, size_t count) {
+    if(file == NULL) {
+        error("attempted to perform string read on NULL file!");
+    }
+
+    if(buffer == NULL) {
+        error("can't file_read_string into NULL buffer!");
+    }
+
+    fread(buffer, 1, count, file->handle);
+    buffer[count] = '\0';
+}

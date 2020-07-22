@@ -32,6 +32,7 @@ static audio_system_t* primary_audio;
 
 typedef struct audio_src_t {
     ALuint src;
+    ALuint buffer;
     ALfloat pitch;
     ALfloat gain;
     ALfloat pos[3];

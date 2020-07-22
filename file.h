@@ -11,5 +11,6 @@ typedef struct file_t {
 
 file_t* file_load(const char* path, const char* mode);
 void file_destroy(file_t* file);
+void file_read_string(file_t* file, char* buffer, size_t count);
 
 #endif
