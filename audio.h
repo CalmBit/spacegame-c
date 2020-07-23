@@ -43,6 +43,7 @@ typedef struct audio_reverb_t {
     ALfloat density;
     ALfloat diffusion;
     ALfloat gain;
+    ALfloat decay;
     ALfloat reflection_gain;
     ALfloat reflection_delay;
     ALfloat late_gain;
@@ -94,6 +95,16 @@ void audio_src_destroy(audio_src_t* src);
 
 audio_reverb_t* audio_reverb_create(void);
 void audio_reverb_destroy(audio_reverb_t* reverb);
+
+void audio_reverb_set_density(audio_reverb_t* reverb, ALfloat density);
+void audio_reverb_set_diffusion(audio_reverb_t* reverb, ALfloat diffusion);
+void audio_reverb_set_gain(audio_reverb_t* reverb, ALfloat gain);
+void audio_reverb_set_decay(audio_reverb_t* reverb, ALfloat decay);
+void audio_reverb_set_rgain(audio_reverb_t* reverb, ALfloat rgain);
+void audio_reverb_set_rdelay(audio_reverb_t* reverb, ALfloat rdelay);
+void audio_reverb_set_lgain(audio_reverb_t* reverb, ALfloat lgain);
+void audio_reverb_set_ldelay(audio_reverb_t* reverb, ALfloat ldelay);
+void audio_reverb_set_rolloff_factor(audio_reverb_t* reverb, ALfloat rolloff_factor);
 
 void audio_check_error(const char* fmt);
 void audio_context_check_error(const char* fmt);

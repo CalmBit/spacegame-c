@@ -184,7 +184,7 @@ audio_src_t* audio_src_create(void) {
     alSource3f(src->src, AL_VELOCITY, src->vel[0], src->vel[1], src->vel[2]);
     audio_check_error("unable to set source 'AL_VELOCITY'");
 
-    src->looping = AL_TRUE;
+    src->looping = AL_FALSE;
     alSourcei(src->src, AL_LOOPING, src->looping);
     audio_check_error("unable to set source 'AL_LOOPING'");
 
@@ -245,6 +245,7 @@ audio_reverb_t* audio_reverb_create(void) {
     reverb->density = 1.0f;
     reverb->diffusion = 1.0f;
     reverb->gain = 0.32f;
+    reverb->decay = 1.49f;
     reverb->reflection_gain = 0.05f;
     reverb->reflection_gain = 0.007f;
     reverb->late_gain = 1.26f;
@@ -266,6 +267,106 @@ void audio_reverb_destroy(audio_reverb_t* reverb) {
     alDeleteEffects(1, &reverb->id);
     memory_free(reverb);
 }
+
+void audio_reverb_set_density(audio_reverb_t* reverb, ALfloat density) {
+    if(density < 0.0f || density > 1.0f) {
+        warning("invalid reverb density value %f - ignoring", density);
+        return;
+    }
+    reverb->density = density;
+    
+    alEffectf(reverb->id, AL_REVERB_DENSITY, reverb->density);
+    audio_check_error("unable to set reverb density");
+}
+
+void audio_reverb_set_diffusion(audio_reverb_t* reverb, ALfloat diffusion) {
+    if(diffusion < 0.0f || diffusion > 1.0f) {
+        warning("invalid reverb diffusion value %f - ignoring", diffusion);
+        return;
+    }
+    reverb->diffusion = diffusion;
+    
+    alEffectf(reverb->id, AL_REVERB_DIFFUSION, reverb->diffusion);
+    audio_check_error("unable to set reverb diffusion");
+}
+
+void audio_reverb_set_gain(audio_reverb_t* reverb, ALfloat gain) {
+    if(gain < 0.0f || gain > 1.0f) {
+        warning("invalid reverb gain value %f - ignoring", gain);
+        return;
+    }
+    reverb->gain = gain;
+    
+    alEffectf(reverb->id, AL_REVERB_GAIN, reverb->gain);
+    audio_check_error("unable to set reverb gain");
+}
+
+void audio_reverb_set_decay(audio_reverb_t* reverb, ALfloat decay) {
+    if(decay < 0.0f || decay > 20.0f) {
+        warning("invalid reverb decay value %f - ignoring", decay);
+        return;
+    }
+    reverb->decay = decay;
+    
+    alEffectf(reverb->id, AL_REVERB_DECAY_TIME, reverb->decay);
+    audio_check_error("unable to set reverb decay");
+}
+
+void audio_reverb_set_rgain(audio_reverb_t* reverb, ALfloat rgain) {
+    if(rgain < 0.0f || rgain > 3.16f) {
+        warning("invalid reverb rgain value %f - ignoring", rgain);
+        return;
+    }
+    reverb->reflection_gain = rgain;
+    
+    alEffectf(reverb->id, AL_REVERB_REFLECTIONS_GAIN, reverb->reflection_gain);
+    audio_check_error("unable to set reverb rgain");
+}
+
+void audio_reverb_set_rdelay(audio_reverb_t* reverb, ALfloat rdelay) {
+    if(rdelay < 0.0f || rdelay > 0.3f) {
+        warning("invalid reverb rdelay value %f - ignoring", rdelay);
+        return;
+    }
+    reverb->reflection_delay = rdelay;
+    
+    alEffectf(reverb->id, AL_REVERB_REFLECTIONS_DELAY, reverb->reflection_delay);
+    audio_check_error("unable to set reverb rdelay");
+}
+
+void audio_reverb_set_lgain(audio_reverb_t* reverb, ALfloat lgain) {
+    if(lgain < 0.0f || lgain > 10.0f) {
+        warning("invalid reverb lgain value %f - ignoring", lgain);
+        return;
+    }
+    reverb->late_gain = lgain;
+    
+    alEffectf(reverb->id, AL_REVERB_LATE_REVERB_GAIN, reverb->late_gain);
+    audio_check_error("unable to set reverb lgain");
+}
+
+void audio_reverb_set_ldelay(audio_reverb_t* reverb, ALfloat ldelay) {
+    if(ldelay < 0.0f || ldelay > 0.1f) {
+        warning("invalid reverb ldelay value %f - ignoring", ldelay);
+        return;
+    }
+    reverb->late_delay = ldelay;
+    
+    alEffectf(reverb->id, AL_REVERB_LATE_REVERB_DELAY, reverb->late_delay);
+    audio_check_error("unable to set reverb ldelay");
+}
+
+void audio_reverb_set_rolloff_factor(audio_reverb_t* reverb, ALfloat rolloff_factor) {
+    if(rolloff_factor < 0.0f || rolloff_factor > 10.0f) {
+        warning("invalid reverb rolloff_factor value %f - ignoring", rolloff_factor);
+        return;
+    }
+    reverb->rolloff_factor = rolloff_factor;
+    
+    alEffectf(reverb->id, AL_REVERB_ROOM_ROLLOFF_FACTOR, reverb->rolloff_factor);
+    audio_check_error("unable to set reverb rolloff_factor"); 
+}
+
 
 static void _audio_initialize_alext(void) {
     alGenEffects = (LPALGENEFFECTS)alGetProcAddress("alGenEffects");

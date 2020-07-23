@@ -100,8 +100,13 @@ void window_loop(window_t* win) {
     }
 
     audio_reverb_t* reverb = audio_reverb_create();
+    audio_reverb_set_decay(reverb, 20.0f);
+    audio_reverb_set_rgain(reverb, 3.16f);
+    audio_reverb_set_lgain(reverb, 10.0f);
     audio_slot_reverb(reverb);
     audio_src_t* src = audio_src_create();
+
+    alListener3f(AL_POSITION, 0.0f, 0.0f, 1.0f);
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
@@ -138,8 +143,6 @@ void window_loop(window_t* win) {
 
     while(!glfwWindowShouldClose(win->window)) {
         glfwPollEvents();
-
-        alListener3f(AL_POSITION, 0.0f, 0.0f, 2.0f);
 
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
