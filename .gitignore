@@ -1,3 +1,4 @@
 obj/**
 spacegame
 *.trace
+.DS_Store

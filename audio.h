@@ -40,6 +40,17 @@ typedef struct audio_effect_slot_t {
 
 typedef struct audio_reverb_t {
     ALuint id;
+
+    // These values should only be modified through the
+    // functions below. Any bare modifications to them
+    // will not be honoured unless you manually call
+    // alEffectf and provide the value. Likewise, 
+    // these values should only be trusted insofar
+    // as you're SURE you're not manually setting
+    // their AL represenation anywhere - they can and 
+    // will become desynced if you don't use the below
+    // methods!
+
     ALfloat density;
     ALfloat diffusion;
     ALfloat gain;
