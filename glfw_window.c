@@ -3,7 +3,6 @@
 #include "error.h"
 #include "memory.h"
 #include "shader.h"
-#include "mmath.h"
 #include "audio.h"
 
 #define GL_SILENCE_DEPRECATION
@@ -12,6 +11,8 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
+#include "cglm/cglm.h"
 
 static const struct
 {
@@ -86,12 +87,13 @@ void window_loop(window_t* win) {
     GLuint vao, vbo, ebo;
     GLint vpos_location, m_loc, v_loc, p_loc;
     shader_t* shader;
-    mat4_t model = MAT4_IDENT;
-    mat4_t mview = MAT4_IDENT;
-    mat4_t proj = MAT4_IDENT;
-    vec3_t mpos = {0,1,1};
-    vec3_t mtarget = {0,0,0};
-    vec3_t mup = {0,1,0};
+    mat4 model;
+    glm_mat4_identity(model);
+    mat4 view;
+    mat4 proj;
+    vec3 pos = {0,1,1};
+    vec3 target = {0,0,0};
+    vec3 up = {0,1,0};
 
     glEnable(GL_CULL_FACE);
 
@@ -107,6 +109,8 @@ void window_loop(window_t* win) {
     audio_src_t* src = audio_src_create();
 
     alListener3f(AL_POSITION, 0.0f, 0.0f, 1.0f);
+    audio_src_set_pos(src, -1.0f, 0.0f, 0.0f);
+    //audio_src_set_looping(src, AL_TRUE);
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
@@ -131,15 +135,16 @@ void window_loop(window_t* win) {
                             sizeof(vertices[0]), 
                             NULL);
 
+
     m_loc = glGetUniformLocation(shader->prog, "model");
 
     v_loc = glGetUniformLocation(shader->prog, "view");
-    mat4_lookAt(&mpos, &mtarget, &mup, &mview);
-    glUniformMatrix4fv(v_loc, 1, GL_FALSE, ((float*)&mview));
+    glm_lookat(pos, target, up, view);
+    glUniformMatrix4fv(v_loc, 1, GL_FALSE, view[0]);
 
     p_loc = glGetUniformLocation(shader->prog, "proj");
-    mat4_perspective(90.0f, 1.3333f, 0.1f, 100.0f, &proj);
-    glUniformMatrix4fv(p_loc, 1, GL_TRUE, ((float*)&proj));
+    glm_perspective(90.0f, 1.3333f, 0.1f, 100.0f, proj);
+    glUniformMatrix4fv(p_loc, 1, GL_FALSE, proj[0]);
 
     while(!glfwWindowShouldClose(win->window)) {
         glfwPollEvents();
@@ -148,8 +153,8 @@ void window_loop(window_t* win) {
 
         glUseProgram(shader->prog);
 
-        mat4_rotY(0.01f, &model);
-        glUniformMatrix4fv(m_loc, 1, GL_FALSE, ((float*)&model));
+        glm_rotate_y(model, 0.01f, model);
+        glUniformMatrix4fv(m_loc, 1, GL_FALSE, model[0]);
 
         glDrawElements(GL_TRIANGLES, sizeof(indexes)/sizeof(unsigned short), GL_UNSIGNED_SHORT, NULL);
 

@@ -12,7 +12,7 @@ void error(const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
     #if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
-    fprintf(stderr, "\e[31;1m[ERROR] \e[0m");
+    fprintf(stderr, "%c[31;1m[ERROR] %c[0m", 0x1b, 0x1b);
     #else
     fprintf(stderr, "[ERROR] ");
     #endif
@@ -27,7 +27,7 @@ void warning(const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
     #if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
-    fprintf(stderr, "\e[33;1m[WARNING] \e[0m");
+    fprintf(stderr, "%c[33;1m[WARNING] %c[0m", 0x1b, 0x1b);
     #else
     fprintf(stderr, "[WARNING] ");
     #endif

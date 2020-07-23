@@ -1,7 +1,6 @@
 #ifndef _SPC_OBJ_H
 #define _SPC_OBJ_H
 
-#include "mmath.h"
 #include "list.h"
 
 typedef struct obj_face_t {

@@ -6,6 +6,8 @@
 #include "str_util.h"
 #include "error.h"
 
+#include "cglm/cglm.h"
+
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
@@ -13,8 +15,8 @@
 obj_t* obj_create(const char* path) {
     obj_t* obj;
     file_t* file;
-    vec4_t* v_stor;
-    vec3_t* uvn_stor;
+    vec4* v_stor;
+    vec3* uvn_stor;
     char* mark;
     char buffer[128];
 
@@ -23,8 +25,11 @@ obj_t* obj_create(const char* path) {
     obj->normals = list_create();
     obj->uvs = list_create();
     obj->faces = list_create();
-    v_stor = vec4_create(0,0,0,1);
-    uvn_stor = vec3_create(0,0,0);
+    v_stor = memory_alloc(SPC_MU_MATH, sizeof(vec4));
+    *v_stor[0] = *v_stor[1] = *v_stor[2] = 0;
+    *v_stor[3] = 1.0f;
+    uvn_stor = memory_alloc(SPC_MU_MATH, sizeof(vec3));
+    *uvn_stor[0] = *uvn_stor[1] = *uvn_stor[2] = 0;
 
     file = file_load(path, "r");
     
@@ -48,21 +53,25 @@ obj_t* obj_create(const char* path) {
                 switch(mark[-1]) {
                     case ' ':
                         // just a regular vertex
-                        sscanf(mark, "%f %f %f %f", &v_stor->x, &v_stor->y, &v_stor->z, &v_stor->w);
+                        sscanf(mark, "%f %f %f %f", v_stor[0], v_stor[1], v_stor[2], v_stor[3]);
                         list_push_back(obj->verticies, v_stor);
-                        v_stor = vec4_create(0,0,0,1);
+                        v_stor = memory_alloc(SPC_MU_MATH, sizeof(vec4));
+                        *v_stor[0] = *v_stor[1] = *v_stor[2] = 0;
+                        *v_stor[3] = 1.0f;
                         break;
                     case 't':
                         // texture uv
-                        sscanf(mark, "%f %f %f", &uvn_stor->x, &uvn_stor->y, &uvn_stor->z);
+                        sscanf(mark, "%f %f %f", uvn_stor[0], uvn_stor[1], uvn_stor[2]);
                         list_push_back(obj->uvs, uvn_stor);
-                        uvn_stor = vec3_create(0,0,0);
+                        uvn_stor = memory_alloc(SPC_MU_MATH, sizeof(vec3));
+                        *uvn_stor[0] = *uvn_stor[1] = *uvn_stor[2] = 0;
                         break;
                     case 'n':
                         // normal
-                        sscanf(mark, "%f %f %f", &uvn_stor->x, &uvn_stor->y, &uvn_stor->z);
+                        sscanf(mark, "%f %f %f", uvn_stor[0], uvn_stor[1], uvn_stor[2]);
                         list_push_back(obj->normals, uvn_stor);
-                        uvn_stor = vec3_create(0,0,0);
+                        uvn_stor = memory_alloc(SPC_MU_MATH, sizeof(vec3));
+                        *uvn_stor[0] = *uvn_stor[1] = *uvn_stor[2] = 0;
                         break;
                 }
                 break;
@@ -74,8 +83,8 @@ obj_t* obj_create(const char* path) {
         }
     }
 
-    math_free_container(v_stor);
-    math_free_container(uvn_stor);
+    memory_free(v_stor);
+    memory_free(uvn_stor);
     file_destroy(file);
 
     return obj;

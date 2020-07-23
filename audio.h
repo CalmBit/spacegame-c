@@ -23,7 +23,6 @@ static const char* al_error_codes[] = {
     "AL_OUT_OF_MEMORY"
 };
 
-
 static const char* alc_error_codes[] = {
     "ALC_NO_ERROR",
     "ALC_INVALID_DEVICE",
@@ -81,7 +80,18 @@ typedef struct audio_listener_t {
 } audio_listener_t;
 
 typedef struct audio_src_t {
-    ALuint src;
+    ALuint id;
+
+    // These values should only be modified through the
+    // functions below. Any bare modifications to them
+    // will not be honoured unless you manually call
+    // their method and provide the value. Likewise, 
+    // these values should only be trusted insofar
+    // as you're SURE you're not manually setting
+    // their AL represenation anywhere - they can and 
+    // will become desynced if you don't use the below
+    // methods!
+
     ALuint buffer;
     ALfloat pitch;
     ALfloat gain;
@@ -95,14 +105,16 @@ void audio_cleanup(void);
 
 audio_system_t* audio_create(void);
 void audio_destroy(audio_system_t* aud);
-const char* audio_alerror(ALenum code);
-const char* audio_alcerror(ALCenum code);
-
-void audio_slot_reverb(audio_reverb_t* reverb);
-void audio_unslot_reverb(audio_reverb_t* reverb);
 
 audio_src_t* audio_src_create(void);
 void audio_src_destroy(audio_src_t* src);
+
+void audio_src_set_pitch(audio_src_t* src, ALfloat pitch);
+void audio_src_set_gain(audio_src_t* src, ALfloat gain);
+void audio_src_set_pos(audio_src_t* src, ALfloat x, ALfloat y, ALfloat z);
+void audio_src_set_vel(audio_src_t* src, ALfloat x, ALfloat y, ALfloat z);
+void audio_src_set_looping(audio_src_t* src, bool looping);
+
 
 audio_reverb_t* audio_reverb_create(void);
 void audio_reverb_destroy(audio_reverb_t* reverb);
@@ -117,20 +129,36 @@ void audio_reverb_set_lgain(audio_reverb_t* reverb, ALfloat lgain);
 void audio_reverb_set_ldelay(audio_reverb_t* reverb, ALfloat ldelay);
 void audio_reverb_set_rolloff_factor(audio_reverb_t* reverb, ALfloat rolloff_factor);
 
-void audio_check_error(const char* fmt);
-void audio_context_check_error(const char* fmt);
+void audio_slot_reverb(audio_reverb_t* reverb);
+void audio_unslot_reverb(audio_reverb_t* reverb);
 
-extern LPALGENEFFECTS alGenEffects;
-extern LPALDELETEEFFECTS alDeleteEffects;
-extern LPALISEFFECT alIsEffect;
-extern LPALGENAUXILIARYEFFECTSLOTS alGenAuxiliaryEffectSlots;
-extern LPALDELETEAUXILIARYEFFECTSLOTS alDeleteAuxiliaryEffectSlots;
-extern LPALISAUXILIARYEFFECTSLOT alIsAuxiliaryEffectSlot;
-extern LPALAUXILIARYEFFECTSLOTI alAuxiliaryEffectSloti;
-extern LPALAUXILIARYEFFECTSLOTIV alAuxiliaryEffectSlotiv;
-extern LPALAUXILIARYEFFECTSLOTF alAuxiliaryEffectSlotf;
-extern LPALAUXILIARYEFFECTSLOTFV alAuxiliaryEffectSlotfv;
-extern LPALEFFECTI alEffecti;
-extern LPALEFFECTF alEffectf;
+#define alGenEffects __alGenEffects
+#define alDeleteEffects __alDeleteEffects
+#define alIsEffect __alIsEffect
+#define alGenAuxiliaryEffectSlots __alGenAuxiliaryEffectSlots
+#define alDeleteAuxiliaryEffectSlots __alDeleteAuxiliaryEffectSlots
+#define alIsAuxiliaryEffectSlot __alIsAuxiliaryEffectSlot
+#define alAuxiliaryEffectSloti __alAuxiliaryEffectSloti
+#define alAuxiliaryEffectSlotiv __alAuxiliaryEffectSlotiv
+#define alAuxiliaryEffectSlotf __alAuxiliaryEffectSlotf
+#define alAuxiliaryEffectSlotfv __alAuxiliaryEffectSlotfv
+#define alEffecti __alEffecti
+#define alEffectf __alEffectf
+
+extern LPALGENEFFECTS __alGenEffects;
+extern LPALDELETEEFFECTS __alDeleteEffects;
+extern LPALISEFFECT __alIsEffect;
+extern LPALGENAUXILIARYEFFECTSLOTS __alGenAuxiliaryEffectSlots;
+extern LPALDELETEAUXILIARYEFFECTSLOTS __alDeleteAuxiliaryEffectSlots;
+extern LPALISAUXILIARYEFFECTSLOT __alIsAuxiliaryEffectSlot;
+extern LPALAUXILIARYEFFECTSLOTI __alAuxiliaryEffectSloti;
+extern LPALAUXILIARYEFFECTSLOTIV __alAuxiliaryEffectSlotiv;
+extern LPALAUXILIARYEFFECTSLOTF __alAuxiliaryEffectSlotf;
+extern LPALAUXILIARYEFFECTSLOTFV __alAuxiliaryEffectSlotfv;
+extern LPALEFFECTI __alEffecti;
+extern LPALEFFECTF __alEffectf;
+
+const char* audio_alerror(ALenum code);
+const char* audio_alcerror(ALCenum code);
 
 #endif

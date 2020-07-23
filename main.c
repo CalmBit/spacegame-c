@@ -1,11 +1,12 @@
 #include "memory.h"
 #include "window.h"
-#include "mmath.h"
 #include "audio.h"
 #include "str_util.h"
 #include "list.h"
 #include "obj.h"
 #include "wav.h"
+
+#include "cglm/cglm.h"
 
 #include <stdio.h>
 #include <stddef.h>
@@ -20,25 +21,25 @@ int main(int argc, char** argv) {
     audio_init();
     
     /*obj_t* obj = obj_create("cube.obj");
-    vec4_t* v;
-    vec3_t* uvn;
+    vec4* v;
+    vec3* uvn;
 
     printf("verts:\n");
     for(size_t i =0;i < obj->verticies->length;i++) {
-        v = (vec4_t*)obj->verticies->buff[i];
-        printf("%f %f %f %f\n", v->x, v->y, v->z, v->w);
+        v = (vec4*)obj->verticies->buff[i];
+        printf("%f %f %f %f\n", *v[0], *v[1], *v[2], *v[3]);
     }
 
     printf("normals:\n");
     for(size_t i =0;i < obj->normals->length;i++) {
-        uvn = (vec3_t*)obj->normals->buff[i];
-        printf("%f %f %f\n", uvn->x, uvn->y, uvn->z);
+        uvn = (vec3*)obj->normals->buff[i];
+        printf("%f %f %f\n", *uvn[0],*uvn[1],*uvn[2]);
     }
 
     printf("uvs:\n");
     for(size_t i =0;i < obj->uvs->length;i++) {
-        uvn = (vec3_t*)obj->uvs->buff[i];
-        printf("%f %f %f\n", uvn->x, uvn->y, uvn->z);
+        uvn = (vec3*)obj->uvs->buff[i];
+        printf("%f %f %f\n", *uvn[0],*uvn[1],*uvn[2]);
     }
 
     obj_destroy(obj);*/

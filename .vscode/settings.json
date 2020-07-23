@@ -5,6 +5,9 @@
         "hash_map": "c",
         "string_view": "c",
         "initializer_list": "c",
-        "utility": "c"
+        "utility": "c",
+        "*.tcc": "cpp",
+        "istream": "cpp",
+        "streambuf": "cpp"
     }
 }

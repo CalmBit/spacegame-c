@@ -7,7 +7,7 @@ CFLAGS=-std=c99 -g -Wall -Wextra -Wpedantic \
 		  -I/usr/local/opt/openal-soft/include
 LDFLAGS=-L/usr/local/opt/openal-soft/lib
 LIBS=-lglfw -framework OpenGL -lglew -lopenal
-UNITS=main memory error glfw_window shader file mmath audio \
+UNITS=main memory error glfw_window shader file audio \
  	  str_util list obj wav
 OBJ_DIR=obj/
 OBJS=$(addprefix $(OBJ_DIR), $(addsuffix .o, $(UNITS)))
