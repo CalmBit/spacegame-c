@@ -6,21 +6,22 @@
 #include <string.h>
 #include <errno.h>
 
-file_t* file_load(const char* path, const char* mode) {
-    FILE* file;
+file_t *file_load(const char *path, const char *mode) {
+    FILE *file;
     fpos_t file_size;
 
     file = fopen(path, mode);
-    if(file == NULL) {
+    if (file == NULL) {
         error("unable to open file '%s' - syserr '%s'", path, strerror(errno));
     }
     fseek(file, 0, SEEK_END);
-    if(fgetpos(file, &file_size)) {
-        error("unable to figure out size of file '%s' - syserr '%s'", path, strerror(errno));
+    if (fgetpos(file, &file_size)) {
+        error("unable to figure out size of file '%s' - syserr '%s'", path,
+              strerror(errno));
     }
     fseek(file, 0, SEEK_SET);
-    
-    file_t* r = (file_t*)memory_alloc(SPC_MU_FILE, sizeof(file_t));
+
+    file_t *r = (file_t *) memory_alloc(SPC_MU_FILE, sizeof(file_t));
 
     r->handle = file;
     r->size = file_size;
@@ -28,17 +29,17 @@ file_t* file_load(const char* path, const char* mode) {
     return r;
 }
 
-void file_destroy(file_t* file) {
+void file_destroy(file_t *file) {
     memory_free(file);
 }
 
 
-void file_read_string(file_t* file, char* buffer, size_t count) {
-    if(file == NULL) {
+void file_read_string(file_t *file, char *buffer, size_t count) {
+    if (file == NULL) {
         error("attempted to perform string read on NULL file!");
     }
 
-    if(buffer == NULL) {
+    if (buffer == NULL) {
         error("can't file_read_string into NULL buffer!");
     }
 

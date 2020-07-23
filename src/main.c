@@ -6,20 +6,20 @@
 #include "obj.h"
 #include "wav.h"
 
-#include "cglm/cglm.h"
+#include "../cglm/cglm.h"
 
 #include <stdio.h>
 #include <stddef.h>
 
-int main(int argc, char** argv) {
-    window_t* win;
+int main(int argc, char **argv) {
+    window_t *win;
     memory_init();
     window_init();
 
     win = window_create(800, 600);
 
     audio_init();
-    
+
     /*obj_t* obj = obj_create("cube.obj");
     vec4* v;
     vec3* uvn;
