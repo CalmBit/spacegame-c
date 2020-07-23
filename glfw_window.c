@@ -99,6 +99,8 @@ void window_loop(window_t* win) {
         error("attempted loop before initialization of window struct");
     }
 
+    audio_reverb_t* reverb = audio_reverb_create();
+    audio_slot_reverb(reverb);
     audio_src_t* src = audio_src_create();
 
     glGenVertexArrays(1, &vao);
@@ -151,6 +153,7 @@ void window_loop(window_t* win) {
         glfwSwapBuffers(win->window);
     }
 
+    audio_reverb_destroy(reverb);
     audio_src_destroy(src);
     shader_destroy(shader);
 }

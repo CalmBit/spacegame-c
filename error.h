@@ -16,6 +16,7 @@
 #endif
 
 void error(const char* fmt, ...);
+void warning(const char* fmt, ...);
 void debug(const char* fmt, ...);
 void trace(const char* fmt, ...);
 

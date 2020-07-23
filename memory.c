@@ -112,7 +112,7 @@ void memory_free(void* ptr) {
     memory_block_t* cand;
     block = (memory_block_t*)((char*)(ptr) - sizeof(memory_block_t));
     if(block->owner == SPC_MU_UNOWNED) {
-        error("double free!!!!\n");
+        error("double free!!!!");
     }
     TRACE("freeing block of size %zu (real %zu) owned by '%s'\n", 
             block->size, memory_real_size(block),

@@ -11,13 +11,29 @@
 void error(const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
-    fprintf(stderr, "ERROR: ");
+    #if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
+    fprintf(stderr, "\e[31;1m[ERROR] \e[0m");
+    #else
+    fprintf(stderr, "[ERROR] ");
+    #endif
     vfprintf(stderr, fmt, args);
     va_end(args);
-    audio_cleanup();
-    window_cleanup();
+    fprintf(stderr, "\n");
     memory_cleanup();
     exit(-1);
+}
+
+void warning(const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    #if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
+    fprintf(stderr, "\e[33;1m[WARNING] \e[0m");
+    #else
+    fprintf(stderr, "[WARNING] ");
+    #endif
+    vfprintf(stderr, fmt, args);
+    va_end(args);
+    fprintf(stderr, "\n");
 }
 
 void debug(const char* fmt, ...) {

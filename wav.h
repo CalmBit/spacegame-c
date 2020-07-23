@@ -1,9 +1,12 @@
 #ifndef _SPC_WAV_H
 #define _SPC_WAV_H
 
+#include <AL/al.h>
+
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
+
 
 typedef struct wav_data_t {
     char* buffer;
@@ -21,5 +24,7 @@ typedef struct wav_t {
 
 wav_t* wav_load(const char* path);
 void wav_destroy(wav_t* wav);
+
+ALenum wav_get_format(wav_t* wav);
 
 #endif

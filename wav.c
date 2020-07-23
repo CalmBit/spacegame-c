@@ -100,3 +100,14 @@ void wav_destroy(wav_t* wav) {
     memory_free(wav->data.buffer);
     memory_free(wav);
 }
+
+ALenum wav_get_format(wav_t* wav) {
+    if(wav->bits_per_sample == 8) {
+        return wav->num_channels == 2 ? AL_FORMAT_STEREO8 : AL_FORMAT_MONO8;
+    } else if(wav->bits_per_sample == 16) {
+        return wav->num_channels == 2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
+    }
+
+    error("was unable to find a suitable format for wav file");
+    return 0;
+}
