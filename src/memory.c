@@ -6,6 +6,18 @@
 #include <stddef.h>
 #include <stdlib.h>
 
+struct memory_block_t {
+    size_t size;
+    memory_user owner;
+    struct memory_block_t *next;
+    struct memory_block_t *prev;
+};
+
+struct memory_block_pool_t {
+    memory_block_t base;
+    memory_block_t *search;
+};
+
 memory_block_pool_t *memory_allocate_pool(size_t size) {
     memory_block_pool_t *pool;
     memory_block_t *first;
@@ -115,7 +127,18 @@ void *memory_alloc(memory_user owner, size_t size) {
 void memory_free(void *ptr) {
     memory_block_t *block;
     memory_block_t *cand;
+
+    if (ptr == NULL) {
+        error("can't free null pointer!!!");
+    }
+
     block = (memory_block_t *) ((char *) (ptr) - sizeof(memory_block_t));
+
+    if ((char *) block < (char *) &primary_pool->base ||
+        (char *) block > ((char *) &primary_pool->base) + DEFAULT_POOL_SIZE) {
+        error("tried to free invalid ptr!!!");
+    }
+
     if (block->owner == SPC_MU_UNOWNED) {
         error("double free!!!!");
     }
@@ -161,6 +184,18 @@ void memory_free(void *ptr) {
     TRACE("final freed block of size %zu (real %zu)\n",
           block->size, memory_real_size(block));
 }
+
+static const char *users[] = {
+        "UNOWNED",
+        "WINDOW",
+        "FILE",
+        "GRAPHICS",
+        "SOUND",
+        "LEVEL",
+        "INTERNAL",
+        "MATH",
+        "KEEP"
+};
 
 const char *memory_user_name(memory_user owner) {
     return users[owner];

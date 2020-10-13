@@ -16,18 +16,6 @@
 
 #define DEFAULT_POOL_SIZE 32*1024*1024 // 32MiB
 
-static const char *users[] = {
-        "UNOWNED",
-        "WINDOW",
-        "FILE",
-        "GRAPHICS",
-        "SOUND",
-        "LEVEL",
-        "INTERNAL",
-        "MATH",
-        "KEEP"
-};
-
 typedef enum memory_user {
     SPC_MU_UNOWNED = 0,
     SPC_MU_WINDOW,
@@ -40,17 +28,9 @@ typedef enum memory_user {
     SPC_MU_KEEP,
 } memory_user;
 
-typedef struct memory_block_t {
-    size_t size;
-    memory_user owner;
-    struct memory_block_t *next;
-    struct memory_block_t *prev;
-} memory_block_t;
+typedef struct memory_block_t memory_block_t;
 
-typedef struct memory_block_pool_t {
-    memory_block_t base;
-    memory_block_t *search;
-} memory_block_pool_t;
+typedef struct memory_block_pool_t memory_block_pool_t;
 
 memory_block_pool_t *memory_allocate_pool(size_t size);
 

@@ -10,6 +10,10 @@
 #include <stdio.h>
 #include <float.h>
 
+//===========================================================================//
+//=================STATIC PROTOTYPES/FUNCTION POINTERS=======================//
+//===========================================================================//
+
 LPALGENEFFECTS alGenEffects = NULL;
 LPALDELETEEFFECTS alDeleteEffects = NULL;
 LPALISEFFECT alIsEffect = NULL;
@@ -23,9 +27,6 @@ LPALAUXILIARYEFFECTSLOTFV alAuxiliaryEffectSlotfv = NULL;
 LPALEFFECTI alEffecti = NULL;
 LPALEFFECTF alEffectf = NULL;
 
-ALenum last_al_error;
-ALCenum last_alc_error;
-
 static void _audio_initialize_alext(void);
 
 static void _audio_check_error(const char *fmt);
@@ -38,9 +39,29 @@ static void _audio_mandate_efx(const char *reason);
 
 static const char *_audio_alcerror(ALCenum code);
 
+static audio_listener_t *_audio_listener_create(void);
+
+static void _audio_listener_destroy(audio_listener_t *listener);
+
 //===========================================================================//
 //=================SYSTEM====================================================//
 //===========================================================================//
+
+static audio_system_t *primary_audio;
+
+struct audio_effect_slot_t {
+    ALuint id;
+    bool occupied;
+};
+
+struct audio_system_t {
+    ALCdevice *device;
+    ALCcontext *context;
+    bool has_efx;
+    ALCint send_count;
+    audio_listener_t *listener;
+    audio_effect_slot_t effect_slots[4];
+};
 
 void audio_init(void) {
     primary_audio = audio_create();
@@ -104,10 +125,14 @@ audio_system_t *audio_create(void) {
         aud->send_count = 0;
     }
 
+    aud->listener = _audio_listener_create();
+
     return aud;
 }
 
 void audio_destroy(audio_system_t *aud) {
+    _audio_listener_destroy(aud->listener);
+
     alcMakeContextCurrent(NULL);
 
     alcDestroyContext(aud->context);
@@ -120,8 +145,49 @@ void audio_destroy(audio_system_t *aud) {
 }
 
 //===========================================================================//
+//=================LISTENER==================================================//
+//===========================================================================//
+
+struct audio_listener_t {
+    ALfloat gain;
+    ALfloat pos[3];
+    ALfloat vel[3];
+    ALfloat orientation[6];
+};
+
+static audio_listener_t *_audio_listener_create(void) {
+    audio_listener_t *listener;
+
+    listener = memory_alloc(SPC_MU_SOUND, sizeof(audio_listener_t));
+    listener->gain = 1.0f;
+    listener->pos[0] = listener->pos[1] = listener->pos[2] = 0.0f;
+    listener->vel[0] = listener->vel[1] = listener->vel[2] = 0.0f;
+    listener->orientation[0] = listener->orientation[1]
+            = listener->orientation[2] = listener->orientation[3]
+            = listener->orientation[4] = listener->orientation[5]
+            = 0;
+
+    return listener;
+}
+
+static void _audio_listener_destroy(audio_listener_t *listener) {
+    memory_free(listener);
+}
+
+
+//===========================================================================//
 //=================SOURCE====================================================//
 //===========================================================================//
+
+struct audio_src_t {
+    ALuint id;
+    ALuint buffer;
+    ALfloat pitch;
+    ALfloat gain;
+    ALfloat pos[3];
+    ALfloat vel[3];
+    ALboolean looping;
+};
 
 audio_src_t *audio_src_create(void) {
     audio_src_t *src;
@@ -274,13 +340,27 @@ void audio_src_set_looping(audio_src_t *src, bool looping) {
 //=================REVERB====================================================//
 //===========================================================================//
 
+struct audio_reverb_t {
+    ALuint id;
+    ALfloat density;
+    ALfloat diffusion;
+    ALfloat gain;
+    ALfloat decay;
+    ALfloat reflection_gain;
+    ALfloat reflection_delay;
+    ALfloat late_gain;
+    ALfloat late_delay;
+    ALfloat rolloff_factor;
+    int slot_id;
+};
+
 audio_reverb_t *audio_reverb_create(void) {
     audio_reverb_t *reverb;
 
     _audio_mandate_context("create reverb");
     _audio_mandate_efx("create reverb");
 
-    reverb = memory_alloc(SPC_MU_SOUND, sizeof(audio_reverb_t));
+    reverb = memory_alloc(SPC_MU_SOUND, sizeof(struct audio_reverb_t));
 
     alGenEffects(1, &reverb->id);
     _audio_check_error("unable to generate effect");
@@ -307,7 +387,7 @@ audio_reverb_t *audio_reverb_create(void) {
     return reverb;
 }
 
-void audio_reverb_destroy(audio_reverb_t *reverb) {
+void audio_reverb_destroy(struct audio_reverb_t *reverb) {
     if (reverb == NULL) {
         error("cannot destroy NULL reverb");
     }
@@ -475,6 +555,25 @@ static void _audio_initialize_alext(void) {
 //=================INTERNAL FUNCTIONS========================================//
 //============================================================================//
 
+static ALenum last_al_error;
+static ALCenum last_alc_error;
+
+static const char *al_error_codes[] = {
+        "AL_NO_ERROR",
+        "AL_INVALID_NAME",
+        "AL_INVALID_ENUM",
+        "AL_INVALID_OPERATION",
+        "AL_OUT_OF_MEMORY"
+};
+
+static const char *alc_error_codes[] = {
+        "ALC_NO_ERROR",
+        "ALC_INVALID_DEVICE",
+        "ALC_INVALID_CONTEXT",
+        "ALC_INVALID_ENUM",
+        "ALC_INVALID_VALUE",
+        "ALC_OUT_OF_MEMORY"
+};
 
 static void _audio_mandate_context(const char *reason) {
     if (!primary_audio) {

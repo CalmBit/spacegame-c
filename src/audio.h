@@ -25,95 +25,16 @@
 #define SPC_SEND_SLOT_COUNT 4
 #define SPC_EFFECT_SLOT_COUNT 4
 
+typedef struct audio_reverb_t audio_reverb_t;
+typedef struct audio_src_t audio_src_t;
+typedef struct audio_listener_t audio_listener_t;
+typedef struct audio_effect_slot_t audio_effect_slot_t;
+typedef struct audio_system_t audio_system_t;
+
 #define SPC_AUXEFF_SLOT_REVERB 0
 #define SPC_AUXEFF_SLOT_UNUSED_1 1
 #define SPC_AUXEFF_SLOT_UNUSED_2 2
 #define SPC_AUXEFF_SLOT_UNUSED_3 3
-
-static const char *al_error_codes[] = {
-        "AL_NO_ERROR",
-        "AL_INVALID_NAME",
-        "AL_INVALID_ENUM",
-        "AL_INVALID_OPERATION",
-        "AL_OUT_OF_MEMORY"
-};
-
-static const char *alc_error_codes[] = {
-        "ALC_NO_ERROR",
-        "ALC_INVALID_DEVICE",
-        "ALC_INVALID_CONTEXT",
-        "ALC_INVALID_ENUM",
-        "ALC_INVALID_VALUE",
-        "ALC_OUT_OF_MEMORY"
-};
-
-typedef struct audio_effect_slot_t {
-    ALuint id;
-    bool occupied;
-} audio_effect_slot_t;
-
-typedef struct audio_reverb_t {
-    ALuint id;
-
-    // These values should only be modified through the
-    // functions below. Any bare modifications to them
-    // will not be honoured unless you manually call
-    // alEffectf and provide the value. Likewise, 
-    // these values should only be trusted insofar
-    // as you're SURE you're not manually setting
-    // their AL represenation anywhere - they can and 
-    // will become desynced if you don't use the below
-    // methods!
-
-    ALfloat density;
-    ALfloat diffusion;
-    ALfloat gain;
-    ALfloat decay;
-    ALfloat reflection_gain;
-    ALfloat reflection_delay;
-    ALfloat late_gain;
-    ALfloat late_delay;
-    ALfloat rolloff_factor;
-    int slot_id;
-} audio_reverb_t;
-
-typedef struct audio_system_t {
-    ALCdevice *device;
-    ALCcontext *context;
-    bool has_efx;
-    ALCint send_count;
-    audio_effect_slot_t effect_slots[4];
-} audio_system_t;
-
-static audio_system_t *primary_audio;
-
-typedef struct audio_listener_t {
-    ALfloat gain;
-    ALfloat pos[3];
-    ALfloat vel[3];
-    ALfloat orientation[6];
-} audio_listener_t;
-
-typedef struct audio_src_t {
-    ALuint id;
-
-    // These values should only be modified through the
-    // functions below. Any bare modifications to them
-    // will not be honoured unless you manually call
-    // their method and provide the value. Likewise, 
-    // these values should only be trusted insofar
-    // as you're SURE you're not manually setting
-    // their AL represenation anywhere - they can and 
-    // will become desynced if you don't use the below
-    // methods!
-
-    ALuint buffer;
-    ALfloat pitch;
-    ALfloat gain;
-    ALfloat pos[3];
-    ALfloat vel[3];
-    ALboolean looping;
-} audio_src_t;
 
 void audio_init(void);
 
@@ -122,6 +43,7 @@ void audio_cleanup(void);
 audio_system_t *audio_create(void);
 
 void audio_destroy(audio_system_t *aud);
+
 
 audio_src_t *audio_src_create(void);
 
